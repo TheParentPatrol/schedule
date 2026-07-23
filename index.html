@@ -393,7 +393,7 @@
     background:none; border:none; color:var(--text-1); font-size:20px; cursor:pointer;
   }
   .modal-actions{display:flex; gap:10px; flex-wrap:wrap;}
-  .logins-list{max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
+  .logins-list{display:flex; flex-direction:column; gap:8px;}
   .login-row{
     background:rgba(255,255,255,0.02); border:1px solid var(--border-soft);
     border-radius:10px; padding:9px 12px;
@@ -442,6 +442,15 @@
   .incident-note-box textarea{min-height:52px; font-size:13px; padding:9px 11px;}
   .incident-note-box .btn{margin-top:6px; padding:7px 14px; font-size:12px;}
   .incident-note-saved{font-size:11px; color:var(--ok); margin-top:4px;}
+
+  .incident-summary-card{
+    background:var(--cyan-dim); border:1px solid rgba(47,216,255,0.3);
+    border-radius:14px; padding:14px 16px; margin-bottom:16px;
+  }
+  .incident-summary-stats{display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:var(--text-1); margin-bottom:10px;}
+  .incident-summary-stats b{color:var(--cyan); font-size:15px; font-family:'Rubik';}
+  .incident-summary-days{display:flex; flex-direction:column; gap:5px;}
+  .incident-summary-day{font-size:12.5px; color:var(--text-0);}
 
   .myshifts-list{max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
   .myshift-row{
@@ -1191,6 +1200,7 @@ function renderAdminModal(initialTab){
           </div>
 
           <div class="admin-tab-panel ${activeTab==='incidents'?'active':''}" data-panel="incidents">
+            <div id="incidents-summary"></div>
             <div id="incidents-list" class="logins-list"><div class="logins-loading mono">טוען...</div></div>
           </div>
 
@@ -1226,8 +1236,42 @@ function renderAdminModal(initialTab){
   });
 
   fetchIncidents().then(list=>{
+    const summaryBox = document.getElementById('incidents-summary');
     const box = document.getElementById('incidents-list');
     if(!box) return;
+
+    if(summaryBox){
+      if(!list.length){
+        summaryBox.innerHTML = '';
+      } else {
+        const lastMonthKey = list.map(i => monthKeyOf(i.date)).sort().slice(-1)[0];
+        const monthIncidents = list.filter(i => monthKeyOf(i.date) === lastMonthKey);
+        const byDate = {};
+        monthIncidents.forEach(i => { (byDate[i.date] = byDate[i.date] || []).push(i); });
+        const dateKeys = Object.keys(byDate).sort();
+        const reporterCount = new Set(monthIncidents.map(i => i.reporterEmail || i.reporterName)).size;
+
+        summaryBox.innerHTML = `
+          <div class="incident-summary-card">
+            <h4 style="margin:0 0 10px;">תמצית ${monthLabel(lastMonthKey)}</h4>
+            <div class="incident-summary-stats">
+              <span><b>${monthIncidents.length}</b> דיווחים</span>
+              <span><b>${dateKeys.length}</b> ימים שונים</span>
+              <span><b>${reporterCount}</b> מדווחים שונים</span>
+            </div>
+            <div class="incident-summary-days">
+              ${dateKeys.map(dt=>{
+                const d = fmtDate(dt);
+                const dayIncidents = byDate[dt];
+                const first = dayIncidents[0].description.slice(0, 70) + (dayIncidents[0].description.length > 70 ? '…' : '');
+                const extra = dayIncidents.length > 1 ? ` (+${dayIncidents.length - 1} נוספים)` : '';
+                return `<div class="incident-summary-day"><b class="mono">${d.num}</b> — ${first}${extra}</div>`;
+              }).join('')}
+            </div>
+          </div>`;
+      }
+    }
+
     if(!list.length){ box.innerHTML = `<div class="logins-empty">עדיין אין דוחות אירועים.</div>`; return; }
     box.innerHTML = list.map(inc=>{
       const row = state.schedule.find(r => r.date === inc.date);
