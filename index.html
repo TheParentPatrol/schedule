@@ -376,9 +376,10 @@
   }
   .modal h3{font-family:'Rubik'; margin:0 0 4px; font-size:19px;}
   .modal p.sub{color:var(--text-1); font-size:13px; margin:0 0 20px;}
-  .modal .field-row{display:flex; gap:8px; align-items:end;}
+  .modal .field-row{display:flex; flex-direction:column; gap:8px; align-items:stretch;}
   .modal .field-row > div{flex:1;}
-  .modal .field-row .btn{padding:12px 16px; white-space:nowrap;}
+  .modal .field-row input{font-size:16px; padding:13px 14px; letter-spacing:.02em;}
+  .modal .field-row .btn{padding:12px 16px; white-space:nowrap; width:100%;}
   .modal-section{border-top:1px solid var(--border-soft); margin-top:20px; padding-top:16px;}
   .modal-section h4{font-family:'Rubik'; font-size:14px; margin:0 0 10px; color:var(--text-1);}
   .modal-close{
@@ -979,13 +980,13 @@ function renderAdminModal(){
 
         <label for="a-group-pass">סיסמת קבוצה (להורים)</label>
         <div class="field-row">
-          <div><input id="a-group-pass" class="ltr-field" type="text" value="${state.settings.groupPassword}"></div>
+          <div><input id="a-group-pass" type="text" value="${state.settings.groupPassword}"></div>
           <button class="btn btn-primary" id="save-group-pass">שמור</button>
         </div>
 
         <label for="a-admin-pass">סיסמת ניהול</label>
         <div class="field-row">
-          <div><input id="a-admin-pass" class="ltr-field" type="text" value="${state.settings.adminPassword}"></div>
+          <div><input id="a-admin-pass" type="text" value="${state.settings.adminPassword}"></div>
           <button class="btn btn-primary" id="save-admin-pass">שמור</button>
         </div>
 
