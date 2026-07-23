@@ -479,6 +479,7 @@
   .myshift-info{display:flex; flex-direction:column; gap:2px;}
   .myshift-date{font-weight:700; font-size:14px;}
   .myshift-route{font-size:12px; color:var(--text-1); display:flex; align-items:center; gap:6px;}
+  .myshift-others{font-size:11.5px; color:var(--text-2); margin-top:2px;}
   .myshift-route .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
   .myshift-cancel{
     flex:0 0 auto; background:rgba(255,92,122,0.14); border:1px solid rgba(255,92,122,0.4);
@@ -1479,7 +1480,8 @@ function renderMyShiftsModal(){
       ROUTES.forEach(route=>{
         row[route.key].forEach((name, idx)=>{
           if(name === myName){
-            items.push({ date: row.date, day: row.day, hours: row.hours, routeKey: route.key, routeName: route.name, routeColor: route.color, idx });
+            const others = row[route.key].filter(n => n && n !== myName);
+            items.push({ date: row.date, day: row.day, hours: row.hours, routeKey: route.key, routeName: route.name, routeColor: route.color, idx, others });
           }
         });
       });
@@ -1499,6 +1501,7 @@ function renderMyShiftsModal(){
                 <div class="myshift-info">
                   <span class="myshift-date">${d.num} · ${it.day}</span>
                   <span class="myshift-route"><span class="dot" style="background:${it.routeColor}"></span>${it.routeName} · ${it.hours}</span>
+                  <span class="myshift-others">${it.others.length ? 'ביחד עם: ' + it.others.join(', ') : 'עוד אף אחד לא הצטרף אליכם'}</span>
                 </div>
                 <button class="myshift-cancel" data-date="${it.date}" data-route="${it.routeKey}" data-idx="${it.idx}">✕ בטל</button>
               </div>`;
