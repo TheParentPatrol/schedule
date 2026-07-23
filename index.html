@@ -169,6 +169,7 @@
   }
   .err.show{display:block;}
   .hint{margin-top:18px; font-size:12px; color:var(--text-2); line-height:1.7; border-top:1px dashed var(--border-soft); padding-top:14px;}
+  .ltr-field{direction:ltr; text-align:left;}
 
   /* ---------- Dashboard ---------- */
   .topbar{
@@ -666,10 +667,10 @@ function renderLogin(){
         <input id="f-name" type="text" placeholder="לדוגמה: דני בצראוי" autocomplete="name">
 
         <label for="f-email">אימייל (Gmail)</label>
-        <input id="f-email" type="email" placeholder="name@gmail.com" autocomplete="email">
+        <input id="f-email" class="ltr-field" type="email" placeholder="name@gmail.com" autocomplete="email">
 
         <label for="f-pass">סיסמה (קבוצה או ניהול)</label>
-        <input id="f-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+        <input id="f-pass" class="ltr-field" type="password" placeholder="••••••••" autocomplete="current-password">
 
         <div class="err" id="login-err">פרטים חסרים או סיסמה שגויה. נסו שוב.</div>
 
@@ -978,13 +979,13 @@ function renderAdminModal(){
 
         <label for="a-group-pass">סיסמת קבוצה (להורים)</label>
         <div class="field-row">
-          <div><input id="a-group-pass" type="text" value="${state.settings.groupPassword}"></div>
+          <div><input id="a-group-pass" class="ltr-field" type="text" value="${state.settings.groupPassword}"></div>
           <button class="btn btn-primary" id="save-group-pass">שמור</button>
         </div>
 
         <label for="a-admin-pass">סיסמת ניהול</label>
         <div class="field-row">
-          <div><input id="a-admin-pass" type="text" value="${state.settings.adminPassword}"></div>
+          <div><input id="a-admin-pass" class="ltr-field" type="text" value="${state.settings.adminPassword}"></div>
           <button class="btn btn-primary" id="save-admin-pass">שמור</button>
         </div>
 
