@@ -209,37 +209,11 @@
 
   .month-bar{
     flex:0 0 auto;
+    display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px 16px;
     margin-bottom:14px;
   }
-  .month-carousel{
-    display:flex; align-items:center; justify-content:center; gap:14px;
-    margin-bottom:10px;
-  }
-  .month-nav{
-    appearance:none; cursor:pointer; flex:0 0 auto;
-    width:38px; height:38px; border-radius:50%;
-    background:var(--glass); border:1px solid var(--border-soft);
-    color:var(--text-0); font-size:17px;
-    display:flex; align-items:center; justify-content:center;
-    transition:all .15s ease;
-  }
-  .month-nav:hover{border-color:var(--cyan); color:var(--cyan);}
-  .month-nav:disabled{opacity:0.3; cursor:not-allowed;}
-  .month-nav:disabled:hover{border-color:var(--border-soft); color:var(--text-0);}
-  .month-carousel-track{
-    flex:1; max-width:320px; text-align:center;
-    touch-action:pan-y;
-    user-select:none;
-  }
   .month-title{font-size:24px; font-weight:900; margin:0; letter-spacing:-.01em;}
-  .month-dots{display:flex; justify-content:center; gap:6px; margin-top:8px;}
-  .month-dot{
-    width:6px; height:6px; border-radius:50%;
-    background:var(--border-strong);
-    transition:all .15s ease; cursor:pointer;
-  }
-  .month-dot.active{width:18px; border-radius:4px; background:var(--cyan);}
-  .month-tabs{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
+  .month-tabs{display:flex; gap:8px; flex-wrap:wrap;}
   .month-tab{
     appearance:none; cursor:pointer;
     font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.03em;
@@ -455,8 +429,6 @@
     .container{padding:10px 12px 8px;}
     .month-bar{margin-bottom:8px;}
     .month-title{font-size:18px;}
-    .month-nav{width:32px; height:32px; font-size:15px;}
-    .month-carousel{gap:8px;}
     .month-tab{padding:5px 10px; font-size:10.5px;}
     .stats-row{gap:8px; margin-bottom:8px;}
     .stat-card{padding:8px 10px; border-radius:11px;}
@@ -550,6 +522,31 @@ function defaultMonthKey(monthKeys){
   if(monthKeys.includes(todayKey)) return todayKey;
   const upcoming = monthKeys.find(k => k >= todayKey);
   return upcoming || monthKeys[0];
+}
+const HEBREW_WEEKDAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת']; // JS getDay(): 0=Sunday
+function nextMonthAfter(monthKeys){
+  const last = monthKeys[monthKeys.length - 1];
+  let [y, m] = last.split('-').map(Number);
+  m += 1;
+  if(m > 12){ m = 1; y += 1; }
+  return y + '-' + String(m).padStart(2,'0');
+}
+function generateEmptyMonthRows(monthKey, hours){
+  const [y, m] = monthKey.split('-').map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate(); // day 0 of next month = last day of this month
+  const rows = [];
+  for(let d = 1; d <= daysInMonth; d++){
+    const dateObj = new Date(y, m - 1, d);
+    const dateStr = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    rows.push({
+      date: dateStr,
+      day: HEBREW_WEEKDAYS[dateObj.getDay()],
+      hours: hours || '23:00-2:00',
+      route1: [null, null, null],
+      route2: [null, null, null]
+    });
+  }
+  return rows;
 }
 const IDENTITY_KEY = 'volunteer-identity-v1';
 const PROFILE_KEY = 'volunteer-profile-v1';
@@ -845,19 +842,10 @@ function renderDashboard(){
 
     <div class="container">
       <div class="month-bar">
-        <div class="month-carousel">
-          <button class="month-nav" id="month-prev" data-dir="prev" ${monthKeys.indexOf(state.selectedMonth)<=0 ? 'disabled' : ''} aria-label="חודש קודם" title="חודש קודם">›</button>
-          <div class="month-carousel-track" id="month-track">
-            <h1 class="display month-title">${monthLabel(state.selectedMonth)}</h1>
-            <div class="month-dots">
-              ${monthKeys.map(k => `<span class="month-dot ${k===state.selectedMonth?'active':''}" data-month="${k}"></span>`).join('')}
-            </div>
-          </div>
-          <button class="month-nav" id="month-next" data-dir="next" ${monthKeys.indexOf(state.selectedMonth)>=monthKeys.length-1 ? 'disabled' : ''} aria-label="חודש הבא" title="חודש הבא">‹</button>
-        </div>
-        ${monthKeys.length > 1 ? `<div class="month-tabs">
+        <h1 class="display month-title">${monthLabel(state.selectedMonth)}</h1>
+        <div class="month-tabs">
           ${monthKeys.map(k => `<button class="month-tab ${k===state.selectedMonth?'active':''}" data-month="${k}">${monthLabel(k)}</button>`).join('')}
-        </div>` : ''}
+        </div>
       </div>
 
       <div class="stats-row">
@@ -944,49 +932,14 @@ function renderDashboard(){
   const adminBtn = document.getElementById('admin-panel-btn');
   if(adminBtn) adminBtn.addEventListener('click', renderAdminModal);
 
-  function goToMonth(key){
-    if(!key || key === state.selectedMonth) return;
-    state.selectedMonth = key;
-    renderDashboard();
-  }
-  function stepMonth(dir){
-    const idx = monthKeys.indexOf(state.selectedMonth);
-    const nextIdx = dir === 'next' ? idx + 1 : idx - 1;
-    if(nextIdx < 0 || nextIdx >= monthKeys.length) return;
-    goToMonth(monthKeys[nextIdx]);
-  }
-
-  document.querySelectorAll('.month-tab, .month-dot').forEach(el=>{
-    el.addEventListener('click', ()=> goToMonth(el.getAttribute('data-month')));
-  });
-
-  const prevBtn = document.getElementById('month-prev');
-  const nextBtn = document.getElementById('month-next');
-  if(prevBtn) prevBtn.addEventListener('click', ()=> stepMonth('prev'));
-  if(nextBtn) nextBtn.addEventListener('click', ()=> stepMonth('next'));
-
-  // Swipe the month title/dots area to move between months (carousel gesture)
-  const monthTrack = document.getElementById('month-track');
-  if(monthTrack){
-    let tStartX = 0, tMoved = false;
-    monthTrack.addEventListener('touchstart', (e)=>{
-      if(e.touches.length !== 1) return;
-      tStartX = e.touches[0].clientX;
-      tMoved = false;
-    }, { passive:true });
-    monthTrack.addEventListener('touchmove', (e)=>{
-      if(e.touches.length !== 1) return;
-      if(Math.abs(e.touches[0].clientX - tStartX) > 10) tMoved = true;
-    }, { passive:true });
-    monthTrack.addEventListener('touchend', (e)=>{
-      if(!tMoved) return;
-      const dx = (e.changedTouches[0].clientX - tStartX);
-      // page is RTL: a swipe to the left (negative dx) moves to the next (later) month,
-      // a swipe to the right (positive dx) goes back to the previous month.
-      if(Math.abs(dx) < 30) return;
-      stepMonth(dx < 0 ? 'next' : 'prev');
+  document.querySelectorAll('.month-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.getAttribute('data-month');
+      if(key === state.selectedMonth) return;
+      state.selectedMonth = key;
+      renderDashboard();
     });
-  }
+  });
 
   document.getElementById('sched-body').addEventListener('click', onSlotClick);
   document.getElementById('sched-body').addEventListener('keydown', (e)=>{
@@ -1043,6 +996,8 @@ function renderAdminModal(){
   const existing = document.getElementById('admin-modal-overlay');
   if(existing) existing.remove();
 
+  const monthKeys = groupMonthKeys(state.schedule);
+
   const overlay = el(`
     <div class="modal-overlay" id="admin-modal-overlay">
       <div class="modal">
@@ -1067,6 +1022,14 @@ function renderAdminModal(){
           <div class="modal-actions">
             <button class="btn btn-danger" id="clear-all-btn">נקה את כל השיבוצים</button>
             <button class="btn btn-ghost" id="reset-seed-btn">שחזר לנתוני האקסל המקוריים</button>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h4>חודשים</h4>
+          <p class="sub" style="margin-bottom:10px;">מוסיף את כל ימי החודש הבא (ריקים, בלי שיבוצים) כדי שההורים יוכלו להתחיל להירשם אליו.</p>
+          <div class="modal-actions">
+            <button class="btn btn-primary" id="add-month-btn">➕ הוסף את ${monthLabel(nextMonthAfter(monthKeys))}</button>
           </div>
         </div>
 
@@ -1130,6 +1093,18 @@ function renderAdminModal(){
     renderDashboard();
     overlay.remove();
     showToast('הלוח שוחזר לנתונים המקוריים');
+  });
+
+  document.getElementById('add-month-btn').addEventListener('click', async ()=>{
+    const newMonthKey = nextMonthAfter(monthKeys);
+    const newRows = generateEmptyMonthRows(newMonthKey);
+    const updated = [...state.schedule, ...newRows];
+    state.schedule = updated;
+    state.selectedMonth = newMonthKey;
+    await saveSchedule(updated);
+    renderDashboard();
+    overlay.remove();
+    showToast(`${monthLabel(newMonthKey)} נוסף ללוח`);
   });
 }
 
