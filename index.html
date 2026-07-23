@@ -209,11 +209,37 @@
 
   .month-bar{
     flex:0 0 auto;
-    display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px 16px;
     margin-bottom:14px;
   }
+  .month-carousel{
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    margin-bottom:10px;
+  }
+  .month-nav{
+    appearance:none; cursor:pointer; flex:0 0 auto;
+    width:38px; height:38px; border-radius:50%;
+    background:var(--glass); border:1px solid var(--border-soft);
+    color:var(--text-0); font-size:17px;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s ease;
+  }
+  .month-nav:hover{border-color:var(--cyan); color:var(--cyan);}
+  .month-nav:disabled{opacity:0.3; cursor:not-allowed;}
+  .month-nav:disabled:hover{border-color:var(--border-soft); color:var(--text-0);}
+  .month-carousel-track{
+    flex:1; max-width:320px; text-align:center;
+    touch-action:pan-y;
+    user-select:none;
+  }
   .month-title{font-size:24px; font-weight:900; margin:0; letter-spacing:-.01em;}
-  .month-tabs{display:flex; gap:8px; flex-wrap:wrap;}
+  .month-dots{display:flex; justify-content:center; gap:6px; margin-top:8px;}
+  .month-dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--border-strong);
+    transition:all .15s ease; cursor:pointer;
+  }
+  .month-dot.active{width:18px; border-radius:4px; background:var(--cyan);}
+  .month-tabs{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
   .month-tab{
     appearance:none; cursor:pointer;
     font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.03em;
@@ -429,6 +455,8 @@
     .container{padding:10px 12px 8px;}
     .month-bar{margin-bottom:8px;}
     .month-title{font-size:18px;}
+    .month-nav{width:32px; height:32px; font-size:15px;}
+    .month-carousel{gap:8px;}
     .month-tab{padding:5px 10px; font-size:10.5px;}
     .stats-row{gap:8px; margin-bottom:8px;}
     .stat-card{padding:8px 10px; border-radius:11px;}
@@ -817,10 +845,19 @@ function renderDashboard(){
 
     <div class="container">
       <div class="month-bar">
-        <h1 class="display month-title">${monthLabel(state.selectedMonth)}</h1>
-        <div class="month-tabs">
-          ${monthKeys.map(k => `<button class="month-tab ${k===state.selectedMonth?'active':''}" data-month="${k}">${monthLabel(k)}</button>`).join('')}
+        <div class="month-carousel">
+          <button class="month-nav" id="month-prev" data-dir="prev" ${monthKeys.indexOf(state.selectedMonth)<=0 ? 'disabled' : ''} aria-label="חודש קודם" title="חודש קודם">›</button>
+          <div class="month-carousel-track" id="month-track">
+            <h1 class="display month-title">${monthLabel(state.selectedMonth)}</h1>
+            <div class="month-dots">
+              ${monthKeys.map(k => `<span class="month-dot ${k===state.selectedMonth?'active':''}" data-month="${k}"></span>`).join('')}
+            </div>
+          </div>
+          <button class="month-nav" id="month-next" data-dir="next" ${monthKeys.indexOf(state.selectedMonth)>=monthKeys.length-1 ? 'disabled' : ''} aria-label="חודש הבא" title="חודש הבא">‹</button>
         </div>
+        ${monthKeys.length > 1 ? `<div class="month-tabs">
+          ${monthKeys.map(k => `<button class="month-tab ${k===state.selectedMonth?'active':''}" data-month="${k}">${monthLabel(k)}</button>`).join('')}
+        </div>` : ''}
       </div>
 
       <div class="stats-row">
@@ -907,14 +944,49 @@ function renderDashboard(){
   const adminBtn = document.getElementById('admin-panel-btn');
   if(adminBtn) adminBtn.addEventListener('click', renderAdminModal);
 
-  document.querySelectorAll('.month-tab').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const key = btn.getAttribute('data-month');
-      if(key === state.selectedMonth) return;
-      state.selectedMonth = key;
-      renderDashboard();
-    });
+  function goToMonth(key){
+    if(!key || key === state.selectedMonth) return;
+    state.selectedMonth = key;
+    renderDashboard();
+  }
+  function stepMonth(dir){
+    const idx = monthKeys.indexOf(state.selectedMonth);
+    const nextIdx = dir === 'next' ? idx + 1 : idx - 1;
+    if(nextIdx < 0 || nextIdx >= monthKeys.length) return;
+    goToMonth(monthKeys[nextIdx]);
+  }
+
+  document.querySelectorAll('.month-tab, .month-dot').forEach(el=>{
+    el.addEventListener('click', ()=> goToMonth(el.getAttribute('data-month')));
   });
+
+  const prevBtn = document.getElementById('month-prev');
+  const nextBtn = document.getElementById('month-next');
+  if(prevBtn) prevBtn.addEventListener('click', ()=> stepMonth('prev'));
+  if(nextBtn) nextBtn.addEventListener('click', ()=> stepMonth('next'));
+
+  // Swipe the month title/dots area to move between months (carousel gesture)
+  const monthTrack = document.getElementById('month-track');
+  if(monthTrack){
+    let tStartX = 0, tMoved = false;
+    monthTrack.addEventListener('touchstart', (e)=>{
+      if(e.touches.length !== 1) return;
+      tStartX = e.touches[0].clientX;
+      tMoved = false;
+    }, { passive:true });
+    monthTrack.addEventListener('touchmove', (e)=>{
+      if(e.touches.length !== 1) return;
+      if(Math.abs(e.touches[0].clientX - tStartX) > 10) tMoved = true;
+    }, { passive:true });
+    monthTrack.addEventListener('touchend', (e)=>{
+      if(!tMoved) return;
+      const dx = (e.changedTouches[0].clientX - tStartX);
+      // page is RTL: a swipe to the left (negative dx) moves to the next (later) month,
+      // a swipe to the right (positive dx) goes back to the previous month.
+      if(Math.abs(dx) < 30) return;
+      stepMonth(dx < 0 ? 'next' : 'prev');
+    });
+  }
 
   document.getElementById('sched-body').addEventListener('click', onSlotClick);
   document.getElementById('sched-body').addEventListener('keydown', (e)=>{
