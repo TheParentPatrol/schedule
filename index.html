@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>הורים ערים | לוח שיבוצים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800;900&family=Heebo:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#060a12;
+    --bg-1:#0a1120;
+    --glass:rgba(20,32,52,0.50);
+    --glass-strong:rgba(24,38,60,0.72);
+    --border-soft:rgba(130,200,255,0.14);
+    --border-strong:rgba(130,200,255,0.30);
+    --cyan:#2fd8ff;
+    --cyan-dim:rgba(47,216,255,0.16);
+    --violet:#b58cff;
+    --violet-dim:rgba(181,140,255,0.16);
+    --amber:#ffb454;
+    --danger:#ff5c7a;
+    --danger-dim:rgba(255,92,122,0.16);
+    --ok:#3be8a8;
+    --text-0:#eaf2fb;
+    --text-1:#9fb0c8;
+    --text-2:#5f7089;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(1100px 700px at 85% -10%, rgba(47,216,255,0.10), transparent 60%),
+      radial-gradient(900px 600px at 10% 110%, rgba(181,140,255,0.10), transparent 60%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1));
+    color:var(--text-0);
+    font-family:'Heebo', sans-serif;
+    position:relative;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0px, rgba(255,255,255,0.018) 1px, transparent 1px, transparent 3px);
+    pointer-events:none;
+    z-index:0;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+  .display{font-family:'Rubik', sans-serif;}
+
+  #app{position:relative; z-index:1; min-height:100vh;}
+
+  /* ---------- Login ---------- */
+  .login-wrap{
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .radar{
+    position:absolute;
+    width:640px; height:640px;
+    top:50%; left:50%; transform:translate(-50%,-50%);
+    border-radius:50%;
+    border:1px solid rgba(47,216,255,0.10);
+    pointer-events:none;
+    z-index:0;
+  }
+  .radar::before, .radar::after{
+    content:"";
+    position:absolute; inset:70px;
+    border-radius:50%;
+    border:1px solid rgba(47,216,255,0.08);
+  }
+  .radar::after{inset:170px;}
+  .radar-sweep{
+    position:absolute; inset:0;
+    border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(47,216,255,0.35), transparent 22%);
+    animation:spin 6s linear infinite;
+    mix-blend-mode:screen;
+    opacity:0.55;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .login-card{
+    position:relative; z-index:2;
+    width:100%; max-width:420px;
+    background:var(--glass-strong);
+    border:1px solid var(--border-soft);
+    border-radius:24px;
+    padding:36px 30px 30px;
+    backdrop-filter:blur(18px) saturate(140%);
+    -webkit-backdrop-filter:blur(18px) saturate(140%);
+    box-shadow:0 30px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:.18em;
+    color:var(--cyan);
+    text-transform:uppercase;
+    display:flex; align-items:center; gap:8px;
+    margin-bottom:10px;
+  }
+  .eyebrow .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--ok);
+    box-shadow:0 0 8px var(--ok);
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .login-card h1{
+    font-family:'Rubik', sans-serif;
+    font-weight:900;
+    font-size:28px;
+    margin:0 0 4px;
+    letter-spacing:-.01em;
+  }
+  .login-card p.sub{color:var(--text-1); font-size:14px; margin:0 0 26px; line-height:1.6;}
+  label{
+    display:block; font-size:12px; color:var(--text-1);
+    margin:16px 0 6px; font-family:'JetBrains Mono', monospace; letter-spacing:.04em;
+  }
+  input[type=text], input[type=email], input[type=password]{
+    width:100%;
+    background:rgba(6,10,18,0.55);
+    border:1px solid var(--border-soft);
+    color:var(--text-0);
+    padding:12px 14px;
+    border-radius:12px;
+    font-size:15px;
+    font-family:'Heebo', sans-serif;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus{
+    border-color:var(--cyan);
+    box-shadow:0 0 0 3px var(--cyan-dim);
+  }
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    font-family:'Rubik', sans-serif; font-weight:700; font-size:15px;
+    border-radius:12px; padding:13px 18px;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease, opacity .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{
+    width:100%; margin-top:22px;
+    background:linear-gradient(135deg, var(--cyan), #1a8fc9);
+    color:#04121a;
+    box-shadow:0 10px 26px rgba(47,216,255,0.25);
+  }
+  .btn-primary:hover{box-shadow:0 12px 32px rgba(47,216,255,0.4);}
+  .btn-ghost{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--border-soft);
+    color:var(--text-1);
+  }
+  .btn-ghost:hover{color:var(--text-0); border-color:var(--border-strong);}
+  .err{
+    margin-top:14px; font-size:13px; color:var(--danger);
+    background:var(--danger-dim); border:1px solid rgba(255,92,122,0.35);
+    padding:9px 12px; border-radius:10px;
+    display:none;
+  }
+  .err.show{display:block;}
+  .hint{margin-top:18px; font-size:12px; color:var(--text-2); line-height:1.7; border-top:1px dashed var(--border-soft); padding-top:14px;}
+
+  /* ---------- Dashboard ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:rgba(8,13,22,0.75);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border-soft);
+    padding:16px 22px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-badge{
+    width:42px;height:42px;border-radius:12px;
+    background:radial-gradient(circle at 30% 30%, rgba(47,216,255,0.4), rgba(47,216,255,0.05));
+    border:1px solid var(--border-strong);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+  }
+  .brand h2{margin:0; font-family:'Rubik'; font-weight:800; font-size:19px;}
+  .brand span.tag{display:block; font-family:'JetBrains Mono'; font-size:11px; color:var(--cyan); letter-spacing:.08em;}
+  .whoami{display:flex;align-items:center; gap:12px; font-size:13px; color:var(--text-1);}
+  .whoami b{color:var(--text-0);}
+  .avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:linear-gradient(135deg, var(--violet), #6c4fc9);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Rubik'; font-weight:800; font-size:14px; color:#fff;
+  }
+
+  .container{max-width:1180px; margin:0 auto; padding:26px 22px 70px;}
+
+  .stats-row{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+    margin-bottom:26px;
+  }
+  @media (max-width:760px){ .stats-row{grid-template-columns:repeat(2,1fr);} }
+  .stat-card{
+    background:var(--glass); border:1px solid var(--border-soft);
+    border-radius:16px; padding:16px 18px;
+    backdrop-filter:blur(14px);
+  }
+  .stat-card .k{font-family:'JetBrains Mono'; font-size:11px; color:var(--text-2); letter-spacing:.06em; text-transform:uppercase;}
+  .stat-card .v{font-family:'Rubik'; font-weight:800; font-size:26px; margin-top:6px;}
+  .stat-card .v.cy{color:var(--cyan);}
+  .stat-card .v.vi{color:var(--violet);}
+  .stat-card .v.ok{color:var(--ok);}
+
+  .toolbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px;}
+  .toolbar h3{font-family:'Rubik'; font-size:18px; margin:0; font-weight:700;}
+  .toolbar .legend{display:flex; gap:16px; font-size:12px; color:var(--text-1); flex-wrap:wrap;}
+  .legend .lg-item{display:flex; align-items:center; gap:6px;}
+  .legend .sw{width:10px;height:10px;border-radius:3px;}
+
+  .board{
+    background:var(--glass); border:1px solid var(--border-soft);
+    border-radius:20px; overflow:hidden;
+    backdrop-filter:blur(14px);
+  }
+  .board-scroll{overflow-x:auto;}
+  table.sched{border-collapse:separate; border-spacing:0; width:100%; min-width:760px;}
+  table.sched thead th{
+    position:sticky; top:0; z-index:5;
+    background:rgba(10,17,30,0.92);
+    font-family:'JetBrains Mono'; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--text-1); font-weight:500;
+    padding:14px 14px; text-align:right;
+    border-bottom:1px solid var(--border-soft);
+  }
+  table.sched thead th.route-head{text-align:center;}
+  table.sched thead th.route-head .rt-name{
+    display:inline-flex; align-items:center; gap:6px; font-family:'Rubik'; font-size:12.5px; text-transform:none; letter-spacing:0;
+  }
+  table.sched thead th .dot{width:8px;height:8px;border-radius:50%; display:inline-block;}
+  table.sched tbody td{
+    padding:10px 14px; border-bottom:1px solid rgba(130,200,255,0.06);
+    vertical-align:top;
+  }
+  table.sched tbody tr:hover{background:rgba(47,216,255,0.03);}
+  tr.weekend td.date-cell{color:var(--amber);}
+  td.date-cell{
+    font-family:'JetBrains Mono'; white-space:nowrap; min-width:64px;
+  }
+  td.date-cell .d-num{font-size:16px; font-weight:700; color:var(--text-0);}
+  td.date-cell .d-day{display:block; font-size:11px; color:var(--text-2); margin-top:2px;}
+  td.hours-cell{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--text-1); white-space:nowrap;}
+
+  .route-col{min-width:210px;}
+  .slot-stack{display:flex; flex-direction:column; gap:6px;}
+  .slot{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:7px 10px;
+    border-radius:10px;
+    border:1px solid var(--border-soft);
+    background:rgba(255,255,255,0.02);
+    font-size:13px;
+    cursor:pointer;
+    transition:all .12s ease;
+    user-select:none;
+  }
+  .slot .num{
+    font-family:'JetBrains Mono'; font-size:10px; color:var(--text-2);
+    width:16px; text-align:center; flex-shrink:0;
+  }
+  .slot .name{flex:1; text-align:right; color:var(--text-0); font-weight:500;}
+  .slot.empty{border-style:dashed;}
+  .slot.empty .name{color:var(--text-2); font-weight:400;}
+  .slot.empty:hover{border-color:var(--cyan); background:var(--cyan-dim); box-shadow:0 0 0 3px rgba(47,216,255,0.08);}
+  .slot.mine{
+    border-color:var(--ok); background:rgba(59,232,168,0.10);
+  }
+  .slot.mine .name{color:var(--ok); font-weight:700;}
+  .slot.other{
+    background:rgba(255,255,255,0.015);
+    cursor:not-allowed;
+    opacity:0.75;
+  }
+  .slot .x-btn{
+    font-family:'JetBrains Mono'; font-size:13px; color:var(--danger);
+    opacity:0; transition:opacity .12s;
+    width:18px; text-align:center;
+  }
+  .slot.mine:hover .x-btn{opacity:1;}
+  .slot .plus{color:var(--cyan); font-family:'JetBrains Mono'; font-size:14px; opacity:0; transition:opacity .12s;}
+  .slot.empty:hover .plus{opacity:1;}
+  .slot .lock{font-size:11px; color:var(--text-2);}
+
+  .footbar{
+    display:flex; justify-content:center; gap:14px; margin-top:24px;
+  }
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--glass-strong); border:1px solid var(--border-strong);
+    padding:12px 20px; border-radius:12px; font-size:13.5px;
+    opacity:0; pointer-events:none; transition:all .25s ease;
+    z-index:100; backdrop-filter:blur(14px);
+    display:flex; align-items:center; gap:8px;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast.err{border-color:var(--danger);}
+
+  .btn-admin{
+    background:linear-gradient(135deg, var(--amber), #b9791f);
+    color:#241300;
+  }
+  .admin-badge{
+    font-family:'JetBrains Mono'; font-size:10px; letter-spacing:.06em;
+    color:var(--amber); border:1px solid rgba(255,180,84,0.4);
+    background:rgba(255,180,84,0.12);
+    padding:3px 8px; border-radius:8px;
+  }
+  .slot.admin-remove{cursor:pointer;}
+  .slot.admin-remove .lock{display:none;}
+  .slot.admin-remove:hover{border-color:var(--amber); box-shadow:0 0 0 3px rgba(255,180,84,0.12);}
+  .slot.admin-remove:hover .x-admin{opacity:1;}
+  .x-admin{font-family:'JetBrains Mono'; font-size:12px; color:var(--amber); opacity:0; transition:opacity .12s; width:18px; text-align:center;}
+
+  .modal-overlay{
+    position:fixed; inset:0; z-index:200;
+    background:rgba(4,7,13,0.72); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal{
+    width:100%; max-width:480px;
+    background:var(--glass-strong); border:1px solid var(--border-strong);
+    border-radius:20px; padding:26px 24px; max-height:88vh; overflow-y:auto;
+    box-shadow:0 30px 80px rgba(0,0,0,0.5);
+    position:relative;
+  }
+  .modal h3{font-family:'Rubik'; margin:0 0 4px; font-size:19px;}
+  .modal p.sub{color:var(--text-1); font-size:13px; margin:0 0 20px;}
+  .modal .field-row{display:flex; gap:8px; align-items:end;}
+  .modal .field-row > div{flex:1;}
+  .modal .field-row .btn{padding:12px 16px; white-space:nowrap;}
+  .modal-section{border-top:1px solid var(--border-soft); margin-top:20px; padding-top:16px;}
+  .modal-section h4{font-family:'Rubik'; font-size:14px; margin:0 0 10px; color:var(--text-1);}
+  .modal-close{
+    position:absolute; top:16px; left:16px;
+    background:none; border:none; color:var(--text-1); font-size:20px; cursor:pointer;
+  }
+  .modal-actions{display:flex; gap:10px; flex-wrap:wrap;}
+  .btn-danger{background:rgba(255,92,122,0.14); border:1px solid rgba(255,92,122,0.4); color:var(--danger);}
+  .btn-danger:hover{background:rgba(255,92,122,0.22);}
+  .connecting{
+    position:fixed; inset:0; z-index:300; display:flex; align-items:center; justify-content:center;
+    background:var(--bg-0); color:var(--text-1); font-family:'JetBrains Mono'; font-size:13px; gap:10px;
+  }
+
+  ::-webkit-scrollbar{height:8px; width:8px;}
+  ::-webkit-scrollbar-thumb{background:rgba(130,200,255,0.25); border-radius:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  a{color:var(--cyan);}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+  button:focus-visible, input:focus-visible, .slot:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* ================================================================
+   FIREBASE SETUP
+   1) Go to https://console.firebase.google.com -> Add project (free)
+   2) Inside the project: Build -> Firestore Database -> Create database
+      (start in "test mode" is fine to begin with)
+   3) Project settings (gear icon) -> General -> "Your apps" -> Web (</>) 
+      -> register an app (no hosting needed) -> copy the firebaseConfig object
+   4) Paste those values below, replacing the placeholders.
+   5) In Firestore -> Rules tab, set:
+        rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} { allow read, write: if true; }
+          }
+        }
+      (this keeps it open for this small trusted group; "test mode" rules
+      expire after 30 days otherwise and the app will stop working)
+   ================================================================ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+const settingsRef = doc(db, 'horimErim', 'settings');
+const scheduleRef = doc(db, 'horimErim', 'schedule');
+
+/* ============ DATA ============ */
+const ROUTES = [
+  {key:'route1', name:'מסלול כוכב יאיר', color:'var(--cyan)', dim:'var(--cyan-dim)'},
+  {key:'route2', name:'מסלול צור יגאל', color:'var(--violet)', dim:'var(--violet-dim)'}
+];
+
+const SEED_SCHEDULE = [{"date": "2026-07-23", "day": "חמישי", "hours": "23:00-2:00", "route1": ["שירה לנדסמן", "ערן בארי", "שראל גרניט"], "route2": ["קרן אפרתי", "אור יהלום", null]}, {"date": "2026-07-24", "day": "שישי", "hours": "23:00-2:00", "route1": ["עופרי מילר", "אלה זילברמן", null], "route2": ["הדר איסרליס", "דני בצראוי", null]}, {"date": "2026-07-25", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-26", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-27", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-28", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-29", "day": "רביעי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-30", "day": "חמישי", "hours": "23:00-2:00", "route1": ["טל אלגזי", "עדי כהן", "קרן אפרתי"], "route2": ["ערן בארי", "דותן לוי", null]}, {"date": "2026-07-31", "day": "שישי", "hours": "23:00-2:00", "route1": ["ענת גידלי", null, null], "route2": [null, null, null]}, {"date": "2026-08-01", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-02", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-03", "day": "שני", "hours": "23:00-2:00", "route1": ["אור יהלום", null, null], "route2": [null, null, null]}, {"date": "2026-08-04", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-05", "day": "רביעי", "hours": "23:00-2:00", "route1": ["ענת כפרי", "שירה נבנהויז", null], "route2": [null, null, null]}, {"date": "2026-08-06", "day": "חמישי", "hours": "23:00-2:00", "route1": ["קרן אביב", null, null], "route2": [null, null, null]}, {"date": "2026-08-07", "day": "שישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-08", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-09", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": ["מרי פישר", null, null]}, {"date": "2026-08-10", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-11", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-12", "day": "רביעי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-13", "day": "חמישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-14", "day": "שישי", "hours": "23:00-2:00", "route1": ["ענת גידלי", null, null], "route2": [null, null, null]}, {"date": "2026-08-15", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": ["שלי ויקינסקי", "שירה לנדסמן", "זיו חן קליין"]}, {"date": "2026-08-16", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-17", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-18", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-19", "day": "רביעי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-20", "day": "חמישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-21", "day": "שישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-22", "day": "שבת", "hours": "23:00-2:00", "route1": ["מרי פישר", "זיו חן קליין", null], "route2": ["שראל גרניט", "קרן זמיר ברק", null]}, {"date": "2026-08-23", "day": "ראשון", "hours": "23:00-2:00", "route1": ["סיגלית סלעי", "ניר סלעי", null], "route2": [null, null, null]}, {"date": "2026-08-24", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-25", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-26", "day": "רביעי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-27", "day": "חמישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-28", "day": "שישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": ["הדר איסרליס", null, null]}, {"date": "2026-08-29", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-30", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-31", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}];
+
+const WEEKEND_DAYS = ['שישי','שבת'];
+const IDENTITY_KEY = 'volunteer-identity-v1';
+const DEFAULT_GROUP_PASSWORD = 'Horim2026';
+const DEFAULT_ADMIN_PASSWORD = 'Admin2026';
+
+let state = {
+  identity: null,      // { name, email, isAdmin }
+  schedule: null,       // array of rows
+  settings: null,       // { groupPassword, adminPassword }
+  loading: true,
+  error: null,
+  adminModalOpen: false
+};
+
+let unsubscribeSchedule = null;
+
+function el(html){
+  const t = document.createElement('template');
+  t.innerHTML = html.trim();
+  return t.content.firstElementChild;
+}
+
+function showToast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' err' : '');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=>{ t.className = 'toast'; }, 2600);
+}
+
+function initials(name){
+  if(!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return (parts[0][0] || '') + (parts[1] ? parts[1][0] : '');
+}
+
+function fmtDate(iso){
+  const [y,m,d] = iso.split('-');
+  return { num: d + '.' + m, };
+}
+
+/* ============ STORAGE HELPERS ============ */
+/* Identity is per-device only -> plain localStorage is fine (no need to share it). */
+function loadIdentity(){
+  try{
+    const raw = localStorage.getItem(IDENTITY_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function saveIdentity(identity){
+  try{ localStorage.setItem(IDENTITY_KEY, JSON.stringify(identity)); }catch(e){}
+}
+function clearIdentity(){
+  try{ localStorage.removeItem(IDENTITY_KEY); }catch(e){}
+}
+
+/* Shared data lives in Firestore so it survives code/deploy updates untouched. */
+async function loadSettings(){
+  const snap = await getDoc(settingsRef);
+  if(snap.exists()) return snap.data();
+  const fresh = { groupPassword: DEFAULT_GROUP_PASSWORD, adminPassword: DEFAULT_ADMIN_PASSWORD };
+  await setDoc(settingsRef, fresh);
+  return fresh;
+}
+async function saveSettings(partial){
+  await setDoc(settingsRef, { ...state.settings, ...partial }, { merge:true });
+  state.settings = { ...state.settings, ...partial };
+}
+async function loadScheduleOnce(){
+  const snap = await getDoc(scheduleRef);
+  if(snap.exists()) return snap.data().rows;
+  const rows = JSON.parse(JSON.stringify(SEED_SCHEDULE));
+  await setDoc(scheduleRef, { rows });
+  return rows;
+}
+async function saveSchedule(schedule){
+  try{
+    await setDoc(scheduleRef, { rows: schedule });
+    return true;
+  }catch(e){
+    console.error('save schedule failed', e);
+    return false;
+  }
+}
+function watchSchedule(onChange){
+  if(unsubscribeSchedule) unsubscribeSchedule();
+  unsubscribeSchedule = onSnapshot(scheduleRef, (snap)=>{
+    if(snap.exists()) onChange(snap.data().rows);
+  }, (err)=>{ console.error('listener error', err); });
+}
+
+/* ============ RENDER: LOGIN ============ */
+function renderLogin(){
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  const wrap = el(`
+    <div class="login-wrap">
+      <div class="radar"><div class="radar-sweep"></div></div>
+      <div class="login-card">
+        <div class="eyebrow"><span class="dot"></span> משמר שכונתי · כניסה מאובטחת</div>
+        <h1 class="display">הורים ערים</h1>
+        <p class="sub">מתנדבים פעילים · לוח שיבוצי סיורי לילה. הזינו פרטים כדי לשבץ את עצמכם לסיורים.</p>
+
+        <label for="f-name">שם מלא</label>
+        <input id="f-name" type="text" placeholder="לדוגמה: דני בצראוי" autocomplete="name">
+
+        <label for="f-email">אימייל (Gmail)</label>
+        <input id="f-email" type="email" placeholder="name@gmail.com" autocomplete="email">
+
+        <label for="f-pass">סיסמה (קבוצה או ניהול)</label>
+        <input id="f-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+
+        <div class="err" id="login-err">פרטים חסרים או סיסמה שגויה. נסו שוב.</div>
+
+        <button class="btn btn-primary" id="login-btn">כניסה למערכת ←</button>
+
+        <div class="hint">
+          הכניסה כאן היא שער גישה פשוט לקבוצה (שם + אימייל + סיסמה), ולא התחברות Google אמיתית. הזנת סיסמת הניהול (אצל האדמין) פותחת גם פאנל ניהול. הפרטים האישיים נשמרים על המכשיר הזה בלבד; סיסמאות ושיבוצים משותפים לכולם.
+        </div>
+      </div>
+    </div>
+  `);
+  app.appendChild(wrap);
+
+  const nameInput = wrap.querySelector('#f-name');
+  const emailInput = wrap.querySelector('#f-email');
+  const passInput = wrap.querySelector('#f-pass');
+  const errBox = wrap.querySelector('#login-err');
+
+  // prefill from last saved (without password) if any leftover state on device
+  passInput.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') emailInput.focus(); });
+  emailInput.addEventListener('keydown', e=>{ if(e.key==='Enter') passInput.focus(); });
+
+  wrap.querySelector('#login-btn').addEventListener('click', doLogin);
+
+  async function doLogin(){
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const pass = passInput.value;
+    errBox.classList.remove('show');
+
+    if(!name || !email || !email.includes('@')){
+      errBox.textContent = 'נא למלא שם ואימייל תקין.';
+      errBox.classList.add('show');
+      return;
+    }
+    let isAdmin = false;
+    if(pass === state.settings.adminPassword){
+      isAdmin = true;
+    } else if(pass !== state.settings.groupPassword){
+      errBox.textContent = 'הסיסמה שגויה. נסו שוב.';
+      errBox.classList.add('show');
+      return;
+    }
+    const identity = { name, email, isAdmin };
+    saveIdentity(identity);
+    state.identity = identity;
+    enterDashboard();
+  }
+}
+
+/* ============ RENDER: DASHBOARD ============ */
+function computeStats(schedule, myName){
+  let total = 0, filled = 0;
+  const volunteers = new Set();
+  schedule.forEach(row=>{
+    ROUTES.forEach(r=>{
+      row[r.key].forEach(name=>{
+        total++;
+        if(name){ filled++; volunteers.add(name); }
+      });
+    });
+  });
+  const myShifts = schedule.reduce((acc,row)=>{
+    ROUTES.forEach(r=>{ row[r.key].forEach(n=>{ if(n===myName) acc++; }); });
+    return acc;
+  },0);
+  return { total, filled, open: total-filled, volunteers: volunteers.size, myShifts };
+}
+
+function slotHtml(row, routeKey, idx, identity){
+  const name = row[routeKey][idx];
+  const myName = identity.name;
+  const isMine = name && name === myName;
+  const isAdmin = !!identity.isAdmin;
+  const adminOverride = name && !isMine && isAdmin;
+  let cls = !name ? 'empty' : (isMine ? 'mine' : 'other');
+  if(adminOverride) cls += ' admin-remove';
+  const label = name ? name : 'פנוי — הצטרפו';
+
+  let action = '';
+  if(!name) action = `data-action="join" data-date="${row.date}" data-route="${routeKey}" data-idx="${idx}"`;
+  else if(isMine) action = `data-action="leave" data-date="${row.date}" data-route="${routeKey}" data-idx="${idx}"`;
+  else if(adminOverride) action = `data-action="admin-leave" data-date="${row.date}" data-route="${routeKey}" data-idx="${idx}"`;
+
+  let trailing = `<span class="lock">🔒</span>`;
+  if(!name) trailing = `<span class="plus">+</span>`;
+  else if(isMine) trailing = `<span class="x-btn">✕</span>`;
+  else if(adminOverride) trailing = `<span class="x-admin">✕</span>`;
+
+  const titleTxt = !name ? 'לחצו כדי להצטרף' : (isMine ? 'לחצו כדי לבטל שיבוץ' : (adminOverride ? 'הסרה על ידי אדמין' : 'תפוס'));
+  return `<div class="slot ${cls}" tabindex="0" role="button" ${action} title="${titleTxt}">
+      <span class="num">${idx+1}</span>
+      <span class="name">${label}</span>
+      ${trailing}
+    </div>`;
+}
+
+function renderDashboard(){
+  const app = document.getElementById('app');
+  const { identity, schedule } = state;
+  const stats = computeStats(schedule, identity.name);
+
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-badge">🛰️</div>
+        <div>
+          <h2 class="display">הורים ערים</h2>
+          <span class="tag">מתנדבים פעילים · לוח שיבוצים חי</span>
+        </div>
+      </div>
+      <div class="whoami">
+        <span>מחוברים כ־ <b>${identity.name}</b></span>
+        ${identity.isAdmin ? `<span class="admin-badge">מצב ניהול</span>` : ''}
+        <div class="avatar">${initials(identity.name)}</div>
+        ${identity.isAdmin ? `<button class="btn btn-admin" id="admin-panel-btn">⚙️ ניהול</button>` : ''}
+        <button class="btn btn-ghost" id="logout-btn">התנתקות</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="k">סה"כ משמרות פתוחות</div>
+          <div class="v cy">${stats.open}</div>
+        </div>
+        <div class="stat-card">
+          <div class="k">משבצים מתוך ${stats.total}</div>
+          <div class="v ok">${stats.filled}</div>
+        </div>
+        <div class="stat-card">
+          <div class="k">מתנדבים פעילים</div>
+          <div class="v vi">${stats.volunteers}</div>
+        </div>
+        <div class="stat-card">
+          <div class="k">השיבוצים שלי</div>
+          <div class="v">${stats.myShifts}</div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <h3 class="display">אוגוסט 2026 · סיורי לילה 23:00–02:00</h3>
+        <div class="legend">
+          <span class="lg-item"><span class="sw" style="background:var(--cyan)"></span> מסלול כוכב יאיר</span>
+          <span class="lg-item"><span class="sw" style="background:var(--violet)"></span> מסלול צור יגאל</span>
+          <span class="lg-item"><span class="sw" style="background:var(--ok)"></span> השיבוץ שלי</span>
+        </div>
+      </div>
+
+      <div class="board">
+        <div class="board-scroll">
+          <table class="sched">
+            <thead>
+              <tr>
+                <th>תאריך</th>
+                <th>שעות</th>
+                <th class="route-head"><span class="rt-name"><span class="dot" style="background:var(--cyan)"></span>כוכב יאיר</span></th>
+                <th class="route-head"><span class="rt-name"><span class="dot" style="background:var(--violet)"></span>צור יגאל</span></th>
+              </tr>
+            </thead>
+            <tbody id="sched-body">
+              ${schedule.map(row=>{
+                const isWeekend = WEEKEND_DAYS.includes(row.day);
+                const d = fmtDate(row.date);
+                return `<tr class="${isWeekend ? 'weekend':''}">
+                  <td class="date-cell"><span class="d-num">${d.num}</span><span class="d-day">${row.day}</span></td>
+                  <td class="hours-cell">${row.hours}</td>
+                  <td class="route-col"><div class="slot-stack">
+                    ${[0,1,2].map(i=>slotHtml(row,'route1',i,identity)).join('')}
+                  </div></td>
+                  <td class="route-col"><div class="slot-stack">
+                    ${[0,1,2].map(i=>slotHtml(row,'route2',i,identity)).join('')}
+                  </div></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="footbar">
+        <button class="btn btn-ghost" id="refresh-btn">🔄 רענון נתונים</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('logout-btn').addEventListener('click', ()=>{
+    clearIdentity();
+    state.identity = null;
+    renderLogin();
+  });
+
+  document.getElementById('refresh-btn').addEventListener('click', async ()=>{
+    const rows = await loadScheduleOnce();
+    state.schedule = rows;
+    renderDashboard();
+    showToast('הנתונים עודכנו');
+  });
+
+  const adminBtn = document.getElementById('admin-panel-btn');
+  if(adminBtn) adminBtn.addEventListener('click', renderAdminModal);
+
+  document.getElementById('sched-body').addEventListener('click', onSlotClick);
+  document.getElementById('sched-body').addEventListener('keydown', (e)=>{
+    if((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('slot')){
+      e.preventDefault();
+      onSlotClick({ target: e.target });
+    }
+  });
+}
+
+/* ============ ADMIN PANEL ============ */
+function renderAdminModal(){
+  const existing = document.getElementById('admin-modal-overlay');
+  if(existing) existing.remove();
+
+  const overlay = el(`
+    <div class="modal-overlay" id="admin-modal-overlay">
+      <div class="modal">
+        <button class="modal-close" id="admin-modal-close">✕</button>
+        <h3 class="display">פאנל ניהול</h3>
+        <p class="sub">שינויים כאן משפיעים על כל ההורים באופן מיידי.</p>
+
+        <label for="a-group-pass">סיסמת קבוצה (להורים)</label>
+        <div class="field-row">
+          <div><input id="a-group-pass" type="text" value="${state.settings.groupPassword}"></div>
+          <button class="btn btn-primary" id="save-group-pass">שמור</button>
+        </div>
+
+        <label for="a-admin-pass">סיסמת ניהול</label>
+        <div class="field-row">
+          <div><input id="a-admin-pass" type="text" value="${state.settings.adminPassword}"></div>
+          <button class="btn btn-primary" id="save-admin-pass">שמור</button>
+        </div>
+
+        <div class="modal-section">
+          <h4>פעולות על הנתונים</h4>
+          <div class="modal-actions">
+            <button class="btn btn-danger" id="clear-all-btn">נקה את כל השיבוצים</button>
+            <button class="btn btn-ghost" id="reset-seed-btn">שחזר לנתוני האקסל המקוריים</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.remove(); });
+  document.getElementById('admin-modal-close').addEventListener('click', ()=> overlay.remove());
+
+  document.getElementById('save-group-pass').addEventListener('click', async ()=>{
+    const val = document.getElementById('a-group-pass').value.trim();
+    if(!val) return;
+    await saveSettings({ groupPassword: val });
+    showToast('סיסמת הקבוצה עודכנה');
+  });
+  document.getElementById('save-admin-pass').addEventListener('click', async ()=>{
+    const val = document.getElementById('a-admin-pass').value.trim();
+    if(!val) return;
+    await saveSettings({ adminPassword: val });
+    showToast('סיסמת הניהול עודכנה');
+  });
+  document.getElementById('clear-all-btn').addEventListener('click', async ()=>{
+    if(!confirm('לנקות את כל השיבוצים הקיימים לכל התאריכים? פעולה זו בלתי הפיכה.')) return;
+    const cleared = state.schedule.map(row=>({
+      ...row, route1:[null,null,null], route2:[null,null,null]
+    }));
+    state.schedule = cleared;
+    await saveSchedule(cleared);
+    renderDashboard();
+    overlay.remove();
+    showToast('כל השיבוצים נוקו');
+  });
+  document.getElementById('reset-seed-btn').addEventListener('click', async ()=>{
+    if(!confirm('לשחזר את הלוח לנתונים המקוריים מהאקסל? כל השינויים שנעשו יימחקו.')) return;
+    const rows = JSON.parse(JSON.stringify(SEED_SCHEDULE));
+    state.schedule = rows;
+    await saveSchedule(rows);
+    renderDashboard();
+    overlay.remove();
+    showToast('הלוח שוחזר לנתונים המקוריים');
+  });
+}
+
+async function onSlotClick(e){
+  const slot = e.target.closest ? e.target.closest('.slot') : null;
+  if(!slot) return;
+  const action = slot.getAttribute('data-action');
+  if(!action) return; // locked / other's slot
+
+  const date = slot.getAttribute('data-date');
+  const routeKey = slot.getAttribute('data-route');
+  const idx = parseInt(slot.getAttribute('data-idx'), 10);
+
+  const row = state.schedule.find(r=>r.date===date);
+  if(!row) return;
+
+  if(action === 'join'){
+    if(row[routeKey][idx]){ showToast('התפוס כבר נלקח, מרעננים...', true); return; }
+    row[routeKey][idx] = state.identity.name;
+  } else if(action === 'leave'){
+    if(row[routeKey][idx] !== state.identity.name) { showToast('לא ניתן להסיר שיבוץ של מתנדב אחר', true); return; }
+    row[routeKey][idx] = null;
+  } else if(action === 'admin-leave'){
+    if(!state.identity.isAdmin) return;
+    row[routeKey][idx] = null;
+  }
+
+  renderDashboard();
+  const ok = await saveSchedule(state.schedule);
+  if(ok){
+    showToast(action==='join' ? 'שובצתם בהצלחה לסיור ✅' : 'השיבוץ בוטל');
+  }else{
+    showToast('שמירה נכשלה, בודקים חיבור...', true);
+  }
+}
+
+/* ============ BOOT ============ */
+function enterDashboard(){
+  renderDashboard();
+  watchSchedule((rows)=>{
+    state.schedule = rows;
+    if(state.identity && !state.adminModalOpen) renderDashboard();
+  });
+}
+
+async function boot(){
+  state.settings = await loadSettings();
+  state.schedule = await loadScheduleOnce();
+  if(state.identity){
+    enterDashboard();
+  } else {
+    renderLogin();
+  }
+}
+
+(async function(){
+  const app = document.getElementById('app');
+  app.innerHTML = `<div class="connecting mono">🛰️ מתחברים למערכת השיבוצים...</div>`;
+  state.identity = loadIdentity();
+  try{
+    await boot();
+  }catch(e){
+    console.error(e);
+    app.innerHTML = `<div class="connecting mono">⚠️ לא ניתן להתחבר. ודאו שהוגדר firebaseConfig תקין בקוד הקובץ.</div>`;
+  }
+})();
+</script>
+</body>
+</html>
