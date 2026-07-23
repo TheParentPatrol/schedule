@@ -124,7 +124,7 @@
     display:block; font-size:12px; color:var(--text-1);
     margin:16px 0 6px; font-family:'JetBrains Mono', monospace; letter-spacing:.04em;
   }
-  input[type=text], input[type=email], input[type=password]{
+  input[type=text], input[type=email], input[type=password], input[type=date], select, textarea{
     width:100%;
     background:rgba(6,10,18,0.55);
     border:1px solid var(--border-soft);
@@ -136,7 +136,9 @@
     outline:none;
     transition:border-color .15s, box-shadow .15s;
   }
-  input:focus{
+  textarea{resize:vertical; min-height:90px; line-height:1.5;}
+  select{cursor:pointer;}
+  input:focus, select:focus, textarea:focus{
     border-color:var(--cyan);
     box-shadow:0 0 0 3px var(--cyan-dim);
   }
@@ -336,7 +338,8 @@
 
   .footbar{
     flex:0 0 auto;
-    display:flex; justify-content:center; gap:14px; margin-top:12px; padding-top:4px;
+    display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:12px; padding-top:4px;
+    overflow:hidden;
   }
   .toast{
     position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px);
@@ -398,6 +401,7 @@
   .login-row-main{display:flex; align-items:center; gap:8px;}
   .login-name{font-weight:600; font-size:13.5px;}
   .login-row-sub{font-size:11px; color:var(--text-2); margin-top:2px;}
+  .incident-desc{font-size:13px; color:var(--text-0); margin-top:6px; line-height:1.5;}
   .logins-loading, .logins-empty{font-size:12.5px; color:var(--text-2); padding:6px 0;}
 
   .myshifts-list{max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
@@ -526,13 +530,14 @@ const firebaseConfig = {
 };
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 const settingsRef = doc(db, 'horimErim', 'settings');
 const scheduleRef = doc(db, 'horimErim', 'schedule');
 const loginsCol = collection(db, 'horimErimLogins');
+const incidentsCol = collection(db, 'horimErimIncidents');
 
 /* ============ DATA ============ */
 const ROUTES = [
@@ -715,6 +720,35 @@ async function fetchLogins(){
     return list;
   }catch(e){
     console.error('fetchLogins failed', e);
+    return [];
+  }
+}
+
+async function submitIncident({ date, routeKey, description }){
+  try{
+    await addDoc(incidentsCol, {
+      date,
+      routeKey: routeKey || null,
+      reporterName: state.identity.name,
+      reporterEmail: state.identity.email,
+      description,
+      createdAt: new Date().toISOString()
+    });
+    return true;
+  }catch(e){
+    console.error('submitIncident failed', e);
+    return false;
+  }
+}
+async function fetchIncidents(){
+  try{
+    const snap = await getDocs(incidentsCol);
+    const list = [];
+    snap.forEach(d => list.push({ id:d.id, ...d.data() }));
+    list.sort((a,b) => b.date.localeCompare(a.date) || (b.createdAt||'').localeCompare(a.createdAt||''));
+    return list;
+  }catch(e){
+    console.error('fetchIncidents failed', e);
     return [];
   }
 }
@@ -954,6 +988,7 @@ function renderDashboard(){
 
       <div class="footbar">
         <button class="btn btn-ghost" id="refresh-btn">🔄 רענון נתונים</button>
+        <button class="btn btn-ghost" id="incident-btn">🚨 דוח אירוע</button>
       </div>
     </div>
   `;
@@ -970,6 +1005,8 @@ function renderDashboard(){
     renderDashboard();
     showToast('הנתונים עודכנו');
   });
+
+  document.getElementById('incident-btn').addEventListener('click', renderIncidentModal);
 
   const adminBtn = document.getElementById('admin-panel-btn');
   if(adminBtn) adminBtn.addEventListener('click', renderAdminModal);
@@ -1087,6 +1124,11 @@ function renderAdminModal(){
           <h4>מי התחבר למערכת</h4>
           <div id="logins-list" class="logins-list"><div class="logins-loading mono">טוען...</div></div>
         </div>
+
+        <div class="modal-section">
+          <h4>דוחות אירועים</h4>
+          <div id="incidents-list" class="logins-list"><div class="logins-loading mono">טוען...</div></div>
+        </div>
       </div>
     </div>
   `);
@@ -1105,6 +1147,27 @@ function renderAdminModal(){
           ${u.isAdmin ? `<span class="admin-badge">אדמין</span>` : ''}
         </div>
         <div class="login-row-sub mono">${u.email || ''} · כניסה אחרונה: ${dtStr}</div>
+      </div>`;
+    }).join('');
+  });
+
+  fetchIncidents().then(list=>{
+    const box = document.getElementById('incidents-list');
+    if(!box) return;
+    if(!list.length){ box.innerHTML = `<div class="logins-empty">עדיין אין דוחות אירועים.</div>`; return; }
+    box.innerHTML = list.map(inc=>{
+      const row = state.schedule.find(r => r.date === inc.date);
+      const roster = row ? ROUTES.map(r => row[r.key].filter(Boolean)).flat() : [];
+      const routeName = inc.routeKey ? (ROUTES.find(r=>r.key===inc.routeKey)?.name || '') : 'כללי';
+      const d = fmtDate(inc.date);
+      const createdDt = inc.createdAt ? new Date(inc.createdAt).toLocaleString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+      return `<div class="login-row">
+        <div class="login-row-main">
+          <span class="login-name">${d.num} · ${row ? row.day : ''} — ${routeName}</span>
+        </div>
+        <div class="login-row-sub mono">דווח ע"י ${inc.reporterName || 'לא ידוע'} (${inc.reporterEmail || ''}) · ${createdDt}</div>
+        <div class="incident-desc">${inc.description}</div>
+        <div class="login-row-sub">מי היה במשמרת: ${roster.length ? roster.join(', ') : 'לא נמצא מידע'}</div>
       </div>`;
     }).join('');
   });
@@ -1221,6 +1284,58 @@ function renderMyShiftsModal(){
       renderMyShiftsModal();
       showToast(ok ? 'השיבוץ בוטל' : 'שמירה נכשלה, בודקים חיבור...', !ok);
     });
+  });
+}
+
+function renderIncidentModal(){
+  const existing = document.getElementById('incident-modal-overlay');
+  if(existing) existing.remove();
+
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  const overlay = el(`
+    <div class="modal-overlay" id="incident-modal-overlay">
+      <div class="modal">
+        <button class="modal-close" id="incident-modal-close">✕</button>
+        <h3 class="display">דוח אירוע</h3>
+        <p class="sub">דיווח על אירוע חריג שקרה במהלך משמרת סיור. הדוח יישמר לפי תאריך המשמרת ויהיה גלוי לאדמין.</p>
+
+        <label for="inc-date">תאריך המשמרת</label>
+        <input id="inc-date" type="date" value="${todayStr}">
+
+        <label for="inc-route">מסלול</label>
+        <select id="inc-route">
+          <option value="">כללי / לא ספציפי</option>
+          ${ROUTES.map(r => `<option value="${r.key}">${r.name}</option>`).join('')}
+        </select>
+
+        <label for="inc-desc">מה קרה?</label>
+        <textarea id="inc-desc" placeholder="תארו בקצרה את האירוע..."></textarea>
+
+        <div class="err" id="incident-err">נא לתאר את האירוע לפני השליחה.</div>
+
+        <button class="btn btn-primary" id="incident-submit" style="width:100%; margin-top:16px;">שלח דוח</button>
+      </div>
+    </div>
+  `);
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.remove(); });
+  document.getElementById('incident-modal-close').addEventListener('click', ()=> overlay.remove());
+
+  document.getElementById('incident-submit').addEventListener('click', async ()=>{
+    const date = document.getElementById('inc-date').value;
+    const routeKey = document.getElementById('inc-route').value;
+    const description = document.getElementById('inc-desc').value.trim();
+    const errBox = document.getElementById('incident-err');
+    if(!date || !description){
+      errBox.classList.add('show');
+      return;
+    }
+    errBox.classList.remove('show');
+    const ok = await submitIncident({ date, routeKey, description });
+    overlay.remove();
+    showToast(ok ? 'הדוח נשלח בהצלחה ✅' : 'שליחת הדוח נכשלה, נסו שוב', !ok);
   });
 }
 
