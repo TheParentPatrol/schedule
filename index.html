@@ -449,6 +449,28 @@
   @media (max-width:380px){
     .radar{width:320px; height:320px;}
   }
+  /* Short viewports (phones rotated to landscape): the fixed header stack can
+     otherwise use up the whole screen height and push the board out of view.
+     Shrink/hide the least essential parts so the board always keeps real space. */
+  @media (max-height:480px){
+    .login-wrap{padding:10px;}
+    .radar{width:280px; height:280px; top:50%;}
+    .login-card{padding:16px 18px 14px; max-height:96%;}
+    .login-card h1{font-size:19px; margin-bottom:2px;}
+    .login-card p.sub{margin-bottom:10px;}
+    .hint{margin-top:10px; padding-top:8px;}
+    label{margin:8px 0 4px;}
+
+    .topbar{padding:6px 16px;}
+    .container{padding:6px 14px 6px;}
+    .month-bar{margin-bottom:4px;}
+    .month-title{font-size:16px;}
+    .month-tab{padding:4px 10px; font-size:10px;}
+    .stats-row{display:none;} /* supplementary info; board needs the room more */
+    .toolbar{margin-bottom:6px;}
+    .toolbar h3{font-size:13px;}
+    .legend{display:none;} /* colors are still visible on the slots themselves */
+  }
 </style>
 </head>
 <body>
