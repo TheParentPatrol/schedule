@@ -177,7 +177,7 @@
     backdrop-filter:blur(16px);
     -webkit-backdrop-filter:blur(16px);
     border-bottom:1px solid var(--border-soft);
-    padding:16px 22px;
+    padding:11px 20px;
     display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
   }
   .brand{display:flex; align-items:center; gap:12px;}
@@ -202,29 +202,52 @@
   .container{
     flex:1; min-height:0; overflow:hidden;
     max-width:1180px; width:100%; margin:0 auto;
-    padding:20px 22px 16px;
+    padding:14px 22px 12px;
     display:flex; flex-direction:column;
+  }
+
+  .month-bar{
+    flex:0 0 auto;
+    display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px 16px;
+    margin-bottom:14px;
+  }
+  .month-title{font-size:24px; font-weight:900; margin:0; letter-spacing:-.01em;}
+  .month-tabs{display:flex; gap:8px; flex-wrap:wrap;}
+  .month-tab{
+    appearance:none; cursor:pointer;
+    font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.03em;
+    color:var(--text-1); background:rgba(255,255,255,0.03);
+    border:1px solid var(--border-soft); border-radius:999px;
+    padding:7px 14px;
+    transition:all .15s ease;
+  }
+  .month-tab:hover{color:var(--text-0); border-color:var(--border-strong);}
+  .month-tab.active{
+    color:#04121a; background:linear-gradient(135deg, var(--cyan), #1a8fc9);
+    border-color:transparent; font-weight:700;
   }
 
   .stats-row{
     flex:0 0 auto;
-    display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
-    margin-bottom:18px;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+    margin-bottom:14px;
   }
   @media (max-width:760px){ .stats-row{grid-template-columns:repeat(2,1fr);} }
   .stat-card{
     background:var(--glass); border:1px solid var(--border-soft);
-    border-radius:16px; padding:16px 18px;
+    border-radius:14px; padding:12px 16px;
     backdrop-filter:blur(14px);
   }
-  .stat-card .k{font-family:'JetBrains Mono'; font-size:11px; color:var(--text-2); letter-spacing:.06em; text-transform:uppercase;}
-  .stat-card .v{font-family:'Rubik'; font-weight:800; font-size:26px; margin-top:6px;}
+  .stat-card .k{font-family:'JetBrains Mono'; font-size:10.5px; color:var(--text-2); letter-spacing:.06em; text-transform:uppercase;}
+  .stat-card .v{font-family:'Rubik'; font-weight:800; font-size:22px; margin-top:4px;}
   .stat-card .v.cy{color:var(--cyan);}
   .stat-card .v.vi{color:var(--violet);}
   .stat-card .v.ok{color:var(--ok);}
 
   .toolbar{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px;}
+  .toolbar-title-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
   .toolbar h3{font-family:'Rubik'; font-size:18px; margin:0; font-weight:700;}
+  .btn-maps{text-decoration:none; padding:8px 14px; font-size:12.5px;}
   .toolbar .legend{display:flex; gap:16px; font-size:12px; color:var(--text-1); flex-wrap:wrap;}
   .legend .lg-item{display:flex; align-items:center; gap:6px;}
   .legend .sw{width:10px;height:10px;border-radius:3px;}
@@ -285,6 +308,9 @@
   .slot.empty{border-style:dashed;}
   .slot.empty .name{color:var(--text-2); font-weight:400;}
   .slot.empty:hover{border-color:var(--cyan); background:var(--cyan-dim); box-shadow:0 0 0 3px rgba(47,216,255,0.08);}
+  .slot.blocked{cursor:not-allowed; opacity:0.5;}
+  .slot.blocked:hover{border-color:var(--border-soft); background:rgba(255,255,255,0.02); box-shadow:none;}
+  .slot.blocked .name{color:var(--text-2);}
   .slot.mine{
     border-color:var(--ok); background:rgba(59,232,168,0.10);
   }
@@ -390,6 +416,8 @@
     .topbar{padding:12px 14px; flex-direction:column; align-items:stretch; gap:10px;}
     .whoami{justify-content:space-between; width:100%; flex-wrap:wrap; gap:8px; font-size:12px;}
     .container{padding:14px 12px 10px;}
+    .month-title{font-size:19px;}
+    .month-tab{padding:6px 11px; font-size:11px;}
     .stat-card{padding:13px 14px;}
     .stat-card .v{font-size:21px;}
     .toolbar{align-items:flex-start;}
@@ -456,7 +484,30 @@ const ROUTES = [
 const SEED_SCHEDULE = [{"date": "2026-07-23", "day": "חמישי", "hours": "23:00-2:00", "route1": ["שירה לנדסמן", "ערן בארי", "שראל גרניט"], "route2": ["קרן אפרתי", "אור יהלום", null]}, {"date": "2026-07-24", "day": "שישי", "hours": "23:00-2:00", "route1": ["עופרי מילר", "אלה זילברמן", null], "route2": ["הדר איסרליס", "דני בצראוי", null]}, {"date": "2026-07-25", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-26", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-27", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-28", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-29", "day": "רביעי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-07-30", "day": "חמישי", "hours": "23:00-2:00", "route1": ["טל אלגזי", "עדי כהן", "קרן אפרתי"], "route2": ["ערן בארי", "דותן לוי", null]}, {"date": "2026-07-31", "day": "שישי", "hours": "23:00-2:00", "route1": ["ענת גידלי", null, null], "route2": [null, null, null]}, {"date": "2026-08-01", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-02", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-03", "day": "שני", "hours": "23:00-2:00", "route1": ["אור יהלום", null, null], "route2": [null, null, null]}, {"date": "2026-08-04", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-05", "day": "רביעי", "hours": "23:00-2:00", "route1": ["ענת כפרי", "שירה נבנהויז", null], "route2": [null, null, null]}, {"date": "2026-08-06", "day": "חמישי", "hours": "23:00-2:00", "route1": ["קרן אביב", null, null], "route2": [null, null, null]}, {"date": "2026-08-07", "day": "שישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-08", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-09", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": ["מרי פישר", null, null]}, {"date": "2026-08-10", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-11", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-12", "day": "רביעי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-13", "day": "חמישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-14", "day": "שישי", "hours": "23:00-2:00", "route1": ["ענת גידלי", null, null], "route2": [null, null, null]}, {"date": "2026-08-15", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": ["שלי ויקינסקי", "שירה לנדסמן", "זיו חן קליין"]}, {"date": "2026-08-16", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-17", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-18", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-19", "day": "רביעי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-20", "day": "חמישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-21", "day": "שישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-22", "day": "שבת", "hours": "23:00-2:00", "route1": ["מרי פישר", "זיו חן קליין", null], "route2": ["שראל גרניט", "קרן זמיר ברק", null]}, {"date": "2026-08-23", "day": "ראשון", "hours": "23:00-2:00", "route1": ["סיגלית סלעי", "ניר סלעי", null], "route2": [null, null, null]}, {"date": "2026-08-24", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-25", "day": "שלישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-26", "day": "רביעי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-27", "day": "חמישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-28", "day": "שישי", "hours": "23:00-2:00", "route1": [null, null, null], "route2": ["הדר איסרליס", null, null]}, {"date": "2026-08-29", "day": "שבת", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-30", "day": "ראשון", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}, {"date": "2026-08-31", "day": "שני", "hours": "23:00-2:00", "route1": [null, null, null], "route2": [null, null, null]}];
 
 const WEEKEND_DAYS = ['שישי','שבת'];
+const HEBREW_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+function monthKeyOf(dateStr){ return dateStr.slice(0,7); } // 'YYYY-MM'
+function monthLabel(key){
+  const [y,m] = key.split('-');
+  return HEBREW_MONTHS[parseInt(m,10)-1] + ' ' + y;
+}
+function groupMonthKeys(schedule){
+  const seen = [];
+  schedule.forEach(row=>{
+    const k = monthKeyOf(row.date);
+    if(!seen.includes(k)) seen.push(k);
+  });
+  return seen.sort(); // 'YYYY-MM' strings sort correctly lexicographically
+}
+function defaultMonthKey(monthKeys){
+  const today = new Date();
+  const todayKey = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0');
+  if(monthKeys.includes(todayKey)) return todayKey;
+  const upcoming = monthKeys.find(k => k >= todayKey);
+  return upcoming || monthKeys[0];
+}
 const IDENTITY_KEY = 'volunteer-identity-v1';
+const PROFILE_KEY = 'volunteer-profile-v1';
 const DEFAULT_GROUP_PASSWORD = 'Horim2026';
 const DEFAULT_ADMIN_PASSWORD = 'Admin2026';
 
@@ -464,6 +515,7 @@ let state = {
   identity: null,      // { name, email, isAdmin }
   schedule: null,       // array of rows
   settings: null,       // { groupPassword, adminPassword }
+  selectedMonth: null,  // 'YYYY-MM'
   loading: true,
   error: null,
   adminModalOpen: false
@@ -505,10 +557,20 @@ function loadIdentity(){
   }catch(e){ return null; }
 }
 function saveIdentity(identity){
-  try{ localStorage.setItem(IDENTITY_KEY, JSON.stringify(identity)); }catch(e){}
+  try{
+    localStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: identity.name, email: identity.email }));
+  }catch(e){}
 }
 function clearIdentity(){
+  // Logging out ends the active session only; name/email stay remembered for next time.
   try{ localStorage.removeItem(IDENTITY_KEY); }catch(e){}
+}
+function loadProfile(){
+  try{
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
 }
 
 /* Shared data lives in Firestore so it survives code/deploy updates untouched. */
@@ -584,12 +646,24 @@ function renderLogin(){
   const passInput = wrap.querySelector('#f-pass');
   const errBox = wrap.querySelector('#login-err');
 
-  // prefill from last saved (without password) if any leftover state on device
+  // prefill from last remembered profile (name+email only, never the password)
+  const savedProfile = loadProfile();
+  if(savedProfile){
+    nameInput.value = savedProfile.name || '';
+    emailInput.value = savedProfile.email || '';
+  }
+
   passInput.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
   nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') emailInput.focus(); });
   emailInput.addEventListener('keydown', e=>{ if(e.key==='Enter') passInput.focus(); });
 
   wrap.querySelector('#login-btn').addEventListener('click', doLogin);
+
+  if(savedProfile){
+    passInput.focus();
+  } else {
+    nameInput.focus();
+  }
 
   async function doLogin(){
     const name = nameInput.value.trim();
@@ -642,21 +716,25 @@ function slotHtml(row, routeKey, idx, identity){
   const isMine = name && name === myName;
   const isAdmin = !!identity.isAdmin;
   const adminOverride = name && !isMine && isAdmin;
+  const blockedByOtherSlot = !name && !isAdmin && isAlreadyInShift(row, myName);
+
   let cls = !name ? 'empty' : (isMine ? 'mine' : 'other');
   if(adminOverride) cls += ' admin-remove';
-  const label = name ? name : 'פנוי — הצטרפו';
+  if(blockedByOtherSlot) cls = 'empty blocked';
+  const label = name ? name : (blockedByOtherSlot ? 'כבר משובץ בתאריך זה' : 'פנוי — הצטרפו');
 
   let action = '';
-  if(!name) action = `data-action="join" data-date="${row.date}" data-route="${routeKey}" data-idx="${idx}"`;
+  if(!name && !blockedByOtherSlot) action = `data-action="join" data-date="${row.date}" data-route="${routeKey}" data-idx="${idx}"`;
   else if(isMine) action = `data-action="leave" data-date="${row.date}" data-route="${routeKey}" data-idx="${idx}"`;
   else if(adminOverride) action = `data-action="admin-leave" data-date="${row.date}" data-route="${routeKey}" data-idx="${idx}"`;
 
   let trailing = `<span class="lock">🔒</span>`;
-  if(!name) trailing = `<span class="plus">+</span>`;
+  if(!name && !blockedByOtherSlot) trailing = `<span class="plus">+</span>`;
   else if(isMine) trailing = `<span class="x-btn">✕</span>`;
   else if(adminOverride) trailing = `<span class="x-admin">✕</span>`;
 
-  const titleTxt = !name ? 'לחצו כדי להצטרף' : (isMine ? 'לחצו כדי לבטל שיבוץ' : (adminOverride ? 'הסרה על ידי אדמין' : 'תפוס'));
+  const titleTxt = blockedByOtherSlot ? 'כבר משובצים למשמרת הזו בתאריך זה'
+    : (!name ? 'לחצו כדי להצטרף' : (isMine ? 'לחצו כדי לבטל שיבוץ' : (adminOverride ? 'הסרה על ידי אדמין' : 'תפוס')));
   return `<div class="slot ${cls}" tabindex="0" role="button" ${action} title="${titleTxt}">
       <span class="num">${idx+1}</span>
       <span class="name">${label}</span>
@@ -667,7 +745,13 @@ function slotHtml(row, routeKey, idx, identity){
 function renderDashboard(){
   const app = document.getElementById('app');
   const { identity, schedule } = state;
-  const stats = computeStats(schedule, identity.name);
+
+  const monthKeys = groupMonthKeys(schedule);
+  if(!state.selectedMonth || !monthKeys.includes(state.selectedMonth)){
+    state.selectedMonth = defaultMonthKey(monthKeys);
+  }
+  const monthRows = schedule.filter(r => monthKeyOf(r.date) === state.selectedMonth);
+  const stats = computeStats(monthRows, identity.name);
 
   app.innerHTML = `
     <div class="topbar">
@@ -688,6 +772,13 @@ function renderDashboard(){
     </div>
 
     <div class="container">
+      <div class="month-bar">
+        <h1 class="display month-title">${monthLabel(state.selectedMonth)}</h1>
+        <div class="month-tabs">
+          ${monthKeys.map(k => `<button class="month-tab ${k===state.selectedMonth?'active':''}" data-month="${k}">${monthLabel(k)}</button>`).join('')}
+        </div>
+      </div>
+
       <div class="stats-row">
         <div class="stat-card">
           <div class="k">סה"כ משמרות פתוחות</div>
@@ -708,7 +799,10 @@ function renderDashboard(){
       </div>
 
       <div class="toolbar">
-        <h3 class="display">אוגוסט 2026 · סיורי לילה 23:00–02:00</h3>
+        <div class="toolbar-title-row">
+          <h3 class="display">סיורי לילה 23:00–02:00</h3>
+          <a class="btn btn-ghost btn-maps" href="https://www.google.com/maps/d/edit?mid=1qj5hOXi_MUHrilsHybhc2PKb1ZXHqk0&usp=sharing" target="_blank" rel="noopener">🗺️ צפייה במסלולים</a>
+        </div>
         <div class="legend">
           <span class="lg-item"><span class="sw" style="background:var(--cyan)"></span> מסלול כוכב יאיר</span>
           <span class="lg-item"><span class="sw" style="background:var(--violet)"></span> מסלול צור יגאל</span>
@@ -717,7 +811,7 @@ function renderDashboard(){
       </div>
 
       <div class="board">
-        <div class="board-scroll">
+        <div class="board-scroll" id="board-scroll">
           <table class="sched">
             <thead>
               <tr>
@@ -728,7 +822,7 @@ function renderDashboard(){
               </tr>
             </thead>
             <tbody id="sched-body">
-              ${schedule.map(row=>{
+              ${monthRows.map(row=>{
                 const isWeekend = WEEKEND_DAYS.includes(row.day);
                 const d = fmtDate(row.date);
                 return `<tr class="${isWeekend ? 'weekend':''}">
@@ -769,6 +863,15 @@ function renderDashboard(){
   const adminBtn = document.getElementById('admin-panel-btn');
   if(adminBtn) adminBtn.addEventListener('click', renderAdminModal);
 
+  document.querySelectorAll('.month-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.getAttribute('data-month');
+      if(key === state.selectedMonth) return;
+      state.selectedMonth = key;
+      renderDashboard();
+    });
+  });
+
   document.getElementById('sched-body').addEventListener('click', onSlotClick);
   document.getElementById('sched-body').addEventListener('keydown', (e)=>{
     if((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('slot')){
@@ -776,6 +879,20 @@ function renderDashboard(){
       onSlotClick({ target: e.target });
     }
   });
+
+  // Lock scrolling to one axis at a time (no diagonal drift from trackpad/mouse wheel)
+  const boardScrollEl = document.getElementById('board-scroll');
+  if(boardScrollEl){
+    boardScrollEl.addEventListener('wheel', (e)=>{
+      if(Math.abs(e.deltaX) > Math.abs(e.deltaY)){
+        e.preventDefault();
+        boardScrollEl.scrollLeft += e.deltaX;
+      } else {
+        e.preventDefault();
+        boardScrollEl.scrollTop += e.deltaY;
+      }
+    }, { passive:false });
+  }
 }
 
 /* ============ ADMIN PANEL ============ */
@@ -851,6 +968,10 @@ function renderAdminModal(){
   });
 }
 
+function isAlreadyInShift(row, name){
+  return ROUTES.some(r => row[r.key].includes(name));
+}
+
 async function onSlotClick(e){
   const slot = e.target.closest ? e.target.closest('.slot') : null;
   if(!slot) return;
@@ -866,6 +987,10 @@ async function onSlotClick(e){
 
   if(action === 'join'){
     if(row[routeKey][idx]){ showToast('התפוס כבר נלקח, מרעננים...', true); return; }
+    if(isAlreadyInShift(row, state.identity.name)){
+      showToast('אתה כבר משובץ למשמרת הזו בתאריך הזה', true);
+      return;
+    }
     row[routeKey][idx] = state.identity.name;
   } else if(action === 'leave'){
     if(row[routeKey][idx] !== state.identity.name) { showToast('לא ניתן להסיר שיבוץ של מתנדב אחר', true); return; }
@@ -896,6 +1021,8 @@ function enterDashboard(){
 async function boot(){
   state.settings = await loadSettings();
   state.schedule = await loadScheduleOnce();
+  const months = groupMonthKeys(state.schedule);
+  state.selectedMonth = defaultMonthKey(months);
   if(state.identity){
     enterDashboard();
   } else {
