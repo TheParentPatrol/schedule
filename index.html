@@ -861,15 +861,50 @@ async function boot(){
   }
 }
 
+function isConfigMissing(){
+  return Object.values(firebaseConfig).some(v => typeof v === 'string' && v.startsWith('YOUR_'));
+}
+
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(()=> reject(new Error('timeout')), ms))
+  ]);
+}
+
 (async function(){
   const app = document.getElementById('app');
+
+  if(isConfigMissing()){
+    app.innerHTML = `
+      <div class="login-wrap">
+        <div class="login-card" style="max-width:520px;">
+          <div class="eyebrow"><span class="dot" style="background:var(--amber); box-shadow:0 0 8px var(--amber);"></span> נדרשת הגדרה</div>
+          <h1 class="display">חסר חיבור למסד נתונים</h1>
+          <p class="sub">הקובץ עדיין מכיל ערכי placeholder (כמו <code class="mono">YOUR_API_KEY</code>) במקום פרטי Firebase האמיתיים. עד שהם לא יוחלפו, אין שום מקום לשמור בו שיבוצים ולכן המערכת לא יכולה לעלות.</p>
+          <div class="hint">
+            פתחו את הקובץ בעורך טקסט, חפשו את המשתנה <b>firebaseConfig</b> בתחילת ה-<code class="mono">&lt;script&gt;</code>, והחליפו את הערכים בפרטים האמיתיים שקיבלתם מ-Firebase Console (Project settings ← Your apps ← Web app). אחרי השמירה, פרסמו מחדש ל-Netlify.
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
   app.innerHTML = `<div class="connecting mono">🛰️ מתחברים למערכת השיבוצים...</div>`;
   state.identity = loadIdentity();
   try{
-    await boot();
+    await withTimeout(boot(), 10000);
   }catch(e){
     console.error(e);
-    app.innerHTML = `<div class="connecting mono">⚠️ לא ניתן להתחבר. ודאו שהוגדר firebaseConfig תקין בקוד הקובץ.</div>`;
+    app.innerHTML = `
+      <div class="login-wrap">
+        <div class="login-card" style="max-width:520px;">
+          <div class="eyebrow"><span class="dot" style="background:var(--danger); box-shadow:0 0 8px var(--danger);"></span> שגיאת חיבור</div>
+          <h1 class="display">לא ניתן להתחבר</h1>
+          <p class="sub">החיבור ל-Firestore נכשל או נמשך יותר מדי זמן. הסיבות הנפוצות: פרטי firebaseConfig שגויים, מסד הנתונים (Firestore) עדיין לא נוצר בפרויקט, או שכללי הגישה (Rules) חוסמים קריאה/כתיבה.</p>
+          <button class="btn btn-primary" onclick="location.reload()">נסה שוב</button>
+        </div>
+      </div>`;
   }
 })();
 </script>
