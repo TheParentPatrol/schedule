@@ -385,6 +385,15 @@
     background:none; border:none; color:var(--text-1); font-size:20px; cursor:pointer;
   }
   .modal-actions{display:flex; gap:10px; flex-wrap:wrap;}
+  .logins-list{max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
+  .login-row{
+    background:rgba(255,255,255,0.02); border:1px solid var(--border-soft);
+    border-radius:10px; padding:9px 12px;
+  }
+  .login-row-main{display:flex; align-items:center; gap:8px;}
+  .login-name{font-weight:600; font-size:13.5px;}
+  .login-row-sub{font-size:11px; color:var(--text-2); margin-top:2px;}
+  .logins-loading, .logins-empty{font-size:12.5px; color:var(--text-2); padding:6px 0;}
   .btn-danger{background:rgba(255,92,122,0.14); border:1px solid rgba(255,92,122,0.4); color:var(--danger);}
   .btn-danger:hover{background:rgba(255,92,122,0.22);}
   .connecting{
@@ -473,12 +482,13 @@ const firebaseConfig = {
 };
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 const settingsRef = doc(db, 'horimErim', 'settings');
 const scheduleRef = doc(db, 'horimErim', 'schedule');
+const loginsCol = collection(db, 'horimErimLogins');
 
 /* ============ DATA ============ */
 const ROUTES = [
@@ -611,6 +621,33 @@ function watchSchedule(onChange){
   unsubscribeSchedule = onSnapshot(scheduleRef, (snap)=>{
     if(snap.exists()) onChange(snap.data().rows);
   }, (err)=>{ console.error('listener error', err); });
+}
+
+function sanitizeDocId(email){
+  return (email || 'unknown').trim().toLowerCase().replace(/[^a-z0-9@._-]/g, '_');
+}
+async function recordLogin(identity){
+  try{
+    const ref = doc(loginsCol, sanitizeDocId(identity.email));
+    await setDoc(ref, {
+      name: identity.name,
+      email: identity.email,
+      isAdmin: !!identity.isAdmin,
+      lastLogin: new Date().toISOString()
+    }, { merge:true });
+  }catch(e){ console.error('recordLogin failed', e); }
+}
+async function fetchLogins(){
+  try{
+    const snap = await getDocs(loginsCol);
+    const list = [];
+    snap.forEach(d => list.push(d.data()));
+    list.sort((a,b) => (b.lastLogin||'').localeCompare(a.lastLogin||''));
+    return list;
+  }catch(e){
+    console.error('fetchLogins failed', e);
+    return [];
+  }
 }
 
 /* ============ RENDER: LOGIN ============ */
@@ -958,10 +995,32 @@ function renderAdminModal(){
             <button class="btn btn-ghost" id="reset-seed-btn">שחזר לנתוני האקסל המקוריים</button>
           </div>
         </div>
+
+        <div class="modal-section">
+          <h4>מי התחבר למערכת</h4>
+          <div id="logins-list" class="logins-list"><div class="logins-loading mono">טוען...</div></div>
+        </div>
       </div>
     </div>
   `);
   document.body.appendChild(overlay);
+
+  fetchLogins().then(list=>{
+    const box = document.getElementById('logins-list');
+    if(!box) return;
+    if(!list.length){ box.innerHTML = `<div class="logins-empty">עדיין אין רישום כניסות.</div>`; return; }
+    box.innerHTML = list.map(u=>{
+      const dt = u.lastLogin ? new Date(u.lastLogin) : null;
+      const dtStr = dt ? dt.toLocaleString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+      return `<div class="login-row">
+        <div class="login-row-main">
+          <span class="login-name">${u.name || 'ללא שם'}</span>
+          ${u.isAdmin ? `<span class="admin-badge">אדמין</span>` : ''}
+        </div>
+        <div class="login-row-sub mono">${u.email || ''} · כניסה אחרונה: ${dtStr}</div>
+      </div>`;
+    }).join('');
+  });
 
   overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.remove(); });
   document.getElementById('admin-modal-close').addEventListener('click', ()=> overlay.remove());
@@ -1044,6 +1103,7 @@ async function onSlotClick(e){
 /* ============ BOOT ============ */
 function enterDashboard(){
   renderDashboard();
+  recordLogin(state.identity);
   watchSchedule((rows)=>{
     state.schedule = rows;
     if(state.identity && !state.adminModalOpen) renderDashboard();
