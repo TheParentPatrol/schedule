@@ -822,12 +822,12 @@ async function fetchIncidents(){
     return [];
   }
 }
-async function saveIncidentNotes(id, adminNotes){
+async function saveIncidentNote(id, adminNote){
   try{
-    await setDoc(doc(incidentsCol, id), { adminNotes }, { merge:true });
+    await setDoc(doc(incidentsCol, id), { adminNote }, { merge:true });
     return true;
   }catch(e){
-    console.error('saveIncidentNotes failed', e);
+    console.error('saveIncidentNote failed', e);
     return false;
   }
 }
@@ -1292,13 +1292,27 @@ function renderAdminModal(initialTab){
 
     if(!list.length){ box.innerHTML = `<div class="logins-empty">עדיין אין דוחות אירועים.</div>`; return; }
 
-    function noteRowHtml(incId, note, idx){
-      const dt = note.createdAt ? new Date(note.createdAt).toLocaleString('he-IL', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
-      return `<div class="note-row" data-note-idx="${idx}">
-        <div class="note-row-view" data-note-view>
+    function noteBoxHtml(inc){
+      const note = inc.adminNote;
+      if(!note || !note.text){
+        return `<div class="incident-note-box" data-note-view>
+          <label style="margin:0 0 6px; font-size:11px;">הערת אדמין</label>
+          <textarea id="new-note-${inc.id}" placeholder="הוסף הערה..."></textarea>
+          <button class="btn btn-ghost" data-add-note="${inc.id}">שמור הערה</button>
+        </div>`;
+      }
+      const dt = note.editedAt || note.createdAt;
+      const dtStr = dt ? new Date(dt).toLocaleString('he-IL', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+      const label = note.editedAt ? 'נערך' : 'נוסף';
+      return `<div class="incident-note-box" data-note-view>
+        <label style="margin:0 0 6px; font-size:11px;">הערת אדמין</label>
+        <div class="note-row">
           <div class="note-row-text">${note.text}</div>
-          <div class="note-row-meta mono">${note.author || 'אדמין'} · ${dt}</div>
-          <button class="note-edit-btn" data-edit-note="${incId}" data-idx="${idx}">ערוך</button>
+          <div class="note-row-meta mono">${note.author || 'אדמין'} · ${label} ${dtStr}</div>
+          <div class="note-edit-actions">
+            <button class="note-edit-btn" data-edit-note="${inc.id}">ערוך</button>
+            <button class="note-edit-btn note-delete-btn" data-delete-note="${inc.id}">מחק</button>
+          </div>
         </div>
       </div>`;
     }
@@ -1310,7 +1324,6 @@ function renderAdminModal(initialTab){
       const routeName = inc.routeKey ? (ROUTES.find(r=>r.key===inc.routeKey)?.name || '') : 'כללי';
       const d = fmtDate(inc.date);
       const createdDt = inc.createdAt ? new Date(inc.createdAt).toLocaleString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
-      const notes = inc.adminNotes || [];
       return `<div class="login-row" data-incident-id="${inc.id}">
         <div class="login-row-main">
           <span class="login-name">${d.num} · ${row ? row.day : ''} — ${routeName}</span>
@@ -1318,14 +1331,7 @@ function renderAdminModal(initialTab){
         <div class="login-row-sub mono">דווח ע"י ${inc.reporterName || 'לא ידוע'} (${inc.reporterEmail || ''}) · ${createdDt}</div>
         <div class="incident-desc">${inc.description}</div>
         <div class="login-row-sub">מי היה במשמרת: ${roster.length ? roster.join(', ') : 'לא נמצא מידע'}</div>
-        <div class="incident-note-box">
-          <label style="margin:0 0 6px; font-size:11px;">הערות אדמין</label>
-          <div class="notes-list" id="notes-list-${inc.id}">
-            ${notes.length ? notes.map((n,idx)=>noteRowHtml(inc.id, n, idx)).join('') : `<div class="notes-empty">אין עדיין הערות.</div>`}
-          </div>
-          <textarea id="new-note-${inc.id}" placeholder="הוסף הערה חדשה..."></textarea>
-          <button class="btn btn-ghost" data-add-note="${inc.id}">הוסף הערה</button>
-        </div>
+        ${noteBoxHtml(inc)}
       </div>`;
     }
 
@@ -1343,15 +1349,14 @@ function renderAdminModal(initialTab){
           if(!text) return;
           const inc = list.find(i => i.id === id);
           if(!inc) return;
-          const notes = inc.adminNotes ? [...inc.adminNotes] : [];
-          notes.push({ text, author: state.identity.name, createdAt: new Date().toISOString() });
-          const ok = await saveIncidentNotes(id, notes);
+          const note = { text, author: state.identity.name, createdAt: new Date().toISOString() };
+          const ok = await saveIncidentNote(id, note);
           if(ok){
-            inc.adminNotes = notes;
+            inc.adminNote = note;
             redrawIncidents();
-            showToast('ההערה נוספה');
+            showToast('ההערה נשמרה');
           } else {
-            showToast('הוספת ההערה נכשלה', true);
+            showToast('שמירת ההערה נכשלה', true);
           }
         });
       });
@@ -1359,35 +1364,49 @@ function renderAdminModal(initialTab){
       box.querySelectorAll('[data-edit-note]').forEach(btn=>{
         btn.addEventListener('click', ()=>{
           const id = btn.getAttribute('data-edit-note');
-          const idx = parseInt(btn.getAttribute('data-idx'), 10);
           const inc = list.find(i => i.id === id);
-          if(!inc || !inc.adminNotes || !inc.adminNotes[idx]) return;
-          const noteRow = box.querySelector(`[data-incident-id="${id}"] [data-note-idx="${idx}"]`);
-          if(!noteRow) return;
-          const currentText = inc.adminNotes[idx].text;
-          noteRow.innerHTML = `
-            <div class="note-row-edit">
-              <textarea data-edit-text>${currentText}</textarea>
-              <div class="note-edit-actions">
-                <button class="btn btn-primary" data-save-edit="${id}" data-idx="${idx}">שמור</button>
-                <button class="btn btn-ghost" data-cancel-edit="${id}" data-idx="${idx}">ביטול</button>
-              </div>
+          if(!inc || !inc.adminNote) return;
+          const noteBox = box.querySelector(`[data-incident-id="${id}"] [data-note-view]`);
+          if(!noteBox) return;
+          const currentText = inc.adminNote.text;
+          noteBox.innerHTML = `
+            <label style="margin:0 0 6px; font-size:11px;">עריכת הערה</label>
+            <textarea data-edit-text>${currentText}</textarea>
+            <div class="note-edit-actions">
+              <button class="btn btn-primary" data-save-edit="${id}">שמור</button>
+              <button class="btn btn-ghost" data-cancel-edit="${id}">ביטול</button>
             </div>`;
-          noteRow.querySelector('[data-save-edit]').addEventListener('click', async ()=>{
-            const newText = noteRow.querySelector('[data-edit-text]').value.trim();
+          noteBox.querySelector('[data-save-edit]').addEventListener('click', async ()=>{
+            const newText = noteBox.querySelector('[data-edit-text]').value.trim();
             if(!newText) return;
-            const notes = [...inc.adminNotes];
-            notes[idx] = { ...notes[idx], text: newText, editedAt: new Date().toISOString() };
-            const ok = await saveIncidentNotes(id, notes);
+            const note = { ...inc.adminNote, text: newText, editedAt: new Date().toISOString() };
+            const ok = await saveIncidentNote(id, note);
             if(ok){
-              inc.adminNotes = notes;
+              inc.adminNote = note;
               redrawIncidents();
               showToast('ההערה עודכנה');
             } else {
               showToast('עדכון ההערה נכשל', true);
             }
           });
-          noteRow.querySelector('[data-cancel-edit]').addEventListener('click', ()=> redrawIncidents());
+          noteBox.querySelector('[data-cancel-edit]').addEventListener('click', ()=> redrawIncidents());
+        });
+      });
+
+      box.querySelectorAll('[data-delete-note]').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          const id = btn.getAttribute('data-delete-note');
+          if(!confirm('למחוק את הערת האדמין הזו?')) return;
+          const inc = list.find(i => i.id === id);
+          if(!inc) return;
+          const ok = await saveIncidentNote(id, null);
+          if(ok){
+            inc.adminNote = null;
+            redrawIncidents();
+            showToast('ההערה נמחקה');
+          } else {
+            showToast('מחיקת ההערה נכשלה', true);
+          }
         });
       });
     }
