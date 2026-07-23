@@ -244,6 +244,9 @@
   .stat-card .v.cy{color:var(--cyan); text-shadow:0 0 16px rgba(47,216,255,0.35);}
   .stat-card .v.vi{color:var(--violet); text-shadow:0 0 16px rgba(181,140,255,0.35);}
   .stat-card .v.ok{color:var(--ok); text-shadow:0 0 16px rgba(59,232,168,0.35);}
+  .stat-clickable{cursor:pointer; transition:border-color .15s, transform .1s;}
+  .stat-clickable:hover{border-color:var(--border-strong);}
+  .stat-clickable:active{transform:scale(0.98);}
 
   .toolbar{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px;}
   .toolbar-title-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
@@ -396,6 +399,23 @@
   .login-name{font-weight:600; font-size:13.5px;}
   .login-row-sub{font-size:11px; color:var(--text-2); margin-top:2px;}
   .logins-loading, .logins-empty{font-size:12.5px; color:var(--text-2); padding:6px 0;}
+
+  .myshifts-list{max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
+  .myshift-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:rgba(59,232,168,0.07); border:1px solid rgba(59,232,168,0.28);
+    border-radius:12px; padding:11px 14px;
+  }
+  .myshift-info{display:flex; flex-direction:column; gap:2px;}
+  .myshift-date{font-weight:700; font-size:14px;}
+  .myshift-route{font-size:12px; color:var(--text-1); display:flex; align-items:center; gap:6px;}
+  .myshift-route .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+  .myshift-cancel{
+    flex:0 0 auto; background:rgba(255,92,122,0.14); border:1px solid rgba(255,92,122,0.4);
+    color:var(--danger); border-radius:9px; padding:8px 13px; font-size:12.5px; cursor:pointer;
+    font-family:'Heebo', sans-serif; transition:background .15s;
+  }
+  .myshift-cancel:hover{background:rgba(255,92,122,0.24);}
   .btn-danger{background:rgba(255,92,122,0.14); border:1px solid rgba(255,92,122,0.4); color:var(--danger);}
   .btn-danger:hover{background:rgba(255,92,122,0.22);}
   .connecting{
@@ -883,7 +903,7 @@ function renderDashboard(){
           <div class="k">מתנדבים פעילים</div>
           <div class="v vi">${stats.volunteers}</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card stat-clickable" id="my-shifts-card" role="button" tabindex="0" title="לחצו לצפייה ובביטול השיבוצים שלכם">
           <div class="k">השיבוצים שלי</div>
           <div class="v">${stats.myShifts}</div>
         </div>
@@ -953,6 +973,14 @@ function renderDashboard(){
 
   const adminBtn = document.getElementById('admin-panel-btn');
   if(adminBtn) adminBtn.addEventListener('click', renderAdminModal);
+
+  const myShiftsCard = document.getElementById('my-shifts-card');
+  if(myShiftsCard){
+    myShiftsCard.addEventListener('click', renderMyShiftsModal);
+    myShiftsCard.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); renderMyShiftsModal(); }
+    });
+  }
 
   document.querySelectorAll('.month-tab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1132,6 +1160,68 @@ function renderAdminModal(){
 
 function isAlreadyInShift(row, name){
   return ROUTES.some(r => row[r.key].includes(name));
+}
+
+function renderMyShiftsModal(){
+  const existing = document.getElementById('myshifts-modal-overlay');
+  if(existing) existing.remove();
+
+  const myName = state.identity.name;
+  const items = [];
+  state.schedule
+    .filter(row => monthKeyOf(row.date) === state.selectedMonth)
+    .forEach(row=>{
+      ROUTES.forEach(route=>{
+        row[route.key].forEach((name, idx)=>{
+          if(name === myName){
+            items.push({ date: row.date, day: row.day, hours: row.hours, routeKey: route.key, routeName: route.name, routeColor: route.color, idx });
+          }
+        });
+      });
+    });
+  items.sort((a,b) => a.date.localeCompare(b.date));
+
+  const overlay = el(`
+    <div class="modal-overlay" id="myshifts-modal-overlay">
+      <div class="modal">
+        <button class="modal-close" id="myshifts-modal-close">✕</button>
+        <h3 class="display">השיבוצים שלי</h3>
+        <p class="sub">הסיורים שאתם רשומים אליהם ב${monthLabel(state.selectedMonth)}. אפשר לבטל ישירות מכאן.</p>
+        <div class="myshifts-list" id="myshifts-list">
+          ${items.length ? items.map(it=>{
+              const d = fmtDate(it.date);
+              return `<div class="myshift-row">
+                <div class="myshift-info">
+                  <span class="myshift-date">${d.num} · ${it.day}</span>
+                  <span class="myshift-route"><span class="dot" style="background:${it.routeColor}"></span>${it.routeName} · ${it.hours}</span>
+                </div>
+                <button class="myshift-cancel" data-date="${it.date}" data-route="${it.routeKey}" data-idx="${it.idx}">✕ בטל</button>
+              </div>`;
+            }).join('')
+            : `<div class="logins-empty">אתם עדיין לא משובצים לסיור בחודש זה.</div>`}
+        </div>
+      </div>
+    </div>
+  `);
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.remove(); });
+  document.getElementById('myshifts-modal-close').addEventListener('click', ()=> overlay.remove());
+
+  overlay.querySelectorAll('.myshift-cancel').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const date = btn.getAttribute('data-date');
+      const routeKey = btn.getAttribute('data-route');
+      const idx = parseInt(btn.getAttribute('data-idx'), 10);
+      const row = state.schedule.find(r => r.date === date);
+      if(!row || row[routeKey][idx] !== myName) return;
+      row[routeKey][idx] = null;
+      const ok = await saveSchedule(state.schedule);
+      renderDashboard();
+      renderMyShiftsModal();
+      showToast(ok ? 'השיבוץ בוטל' : 'שמירה נכשלה, בודקים חיבור...', !ok);
+    });
+  });
 }
 
 async function onSlotClick(e){
